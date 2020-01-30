@@ -1,0 +1,11 @@
+	modified:   package/base-files/files/lib/upgrade/common.sh
+	renamed:    package/boot/grub2/Makefile -> package/boot/grub2/common.mk
+	new file:   package/boot/grub2/grub2-efi/Makefile
+	new file:   package/boot/grub2/grub2/Makefile
+	new file:   target/linux/x86/image/gen_image_efi.sh
+	modified:   tools/Makefile
+	new file:   tools/gptfdisk/Makefile
+	new file:   tools/popt/Makefile
+	new file:   tools/popt/patches/900-autoconf-compat.patch
+	both modified:   config/Config-images.in
+	both modified:   target/linux/x86/image/Makefile
