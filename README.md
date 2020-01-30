@@ -1,4 +1,4 @@
-# OpenWrt-UEFI-Support
+# OpenWrt UEFI Support
 Since OpenWrt Project has not yet accepted any UEFI-Boot approach, extract based on the original jow.git and modify it to be compatible with the current version.
 
 Tested in Openwrt 19.07 source branch.
