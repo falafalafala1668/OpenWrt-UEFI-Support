@@ -9,7 +9,7 @@ Tested in Openwrt 19.07 source branch.
 In your OpenWrt source dir, enter:
 
 ```
-git clone https://github.com/falafalafala1668/openwrt-uefi-support
+git clone https://github.com/falafalafala1668/OpenWrt-UEFI-Support.git
 chmod +x ./openwrt-uefi-support/RunMe.sh
 ./openwrt-uefi-support/RunMe.sh apply
 ```

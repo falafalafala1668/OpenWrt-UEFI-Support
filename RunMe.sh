@@ -5,7 +5,7 @@ if [ "$1" = apply ]; then
   patch -p0 < openwrt-uefi-support/Image.patch
   patch -p0 < openwrt-uefi-support/tools.patch
   mv package/boot/grub2/Makefile package/boot/grub2/Makefile.bak
-  cp -r openwrt-uefi-support/src/package/boot/grub2/* package/boot/grub2/
+  cp -a openwrt-uefi-support/src/package/boot/grub2/* package/boot/grub2/
   cp -r openwrt-uefi-support/src/target/linux/x86/image/gen_image_efi.sh target/linux/x86/image/
   cp -r openwrt-uefi-support/src/tools/gptfdisk tools/
   cp -r openwrt-uefi-support/src/tools/popt tools/
