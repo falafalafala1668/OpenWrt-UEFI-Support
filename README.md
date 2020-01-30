@@ -1,22 +1,25 @@
-# openwrt-uefi-support
+# OpenWrt-UEFI-Support
 Since OpenWrt Project has not yet accepted any UEFI-Boot approach, extract based on the original jow.git and modify it to be compatible with the current version.
 
-Tested in Openwrt 19.07 source branch
+Tested in Openwrt 19.07 source branch.
 
 **UEFI Secure Boot Coming Soon.**
 
 # Usage
 In your OpenWrt source dir, enter:
+
 ```
 git clone https://github.com/falafalafala1668/openwrt-uefi-support
 chmod +x ./openwrt-uefi-support/RunMe.sh
 ./openwrt-uefi-support/RunMe.sh apply
 ```
+
 After merging the branch or checking out openwrt-uefi-support repository, run make menuconfig.
 
-Go to *Target Images* and make sure that **Build EFI grub images** option is checked.
+Go to **Target Images** and make sure that **Build EFI grub images** option is checked.
 
-*Restore*
+**Restore**
+
 ```
 ./openwrt-uefi-support/RunMe.sh restore
 ```
