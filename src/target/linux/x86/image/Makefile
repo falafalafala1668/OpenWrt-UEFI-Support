@@ -55,16 +55,15 @@ ifneq ($(CONFIG_GRUB_IMAGES)$(CONFIG_EFI_IMAGES),)
 
   BOOTOPTS:=$(call qstrip,$(CONFIG_GRUB_BOOTOPTS))
 
-	# UEFI Start
-  ifneq ($(CONFIG_EFI_IMAGES),)
+  define Image/cmdline/ext4
+    root=$(ROOTPART) rootfstype=ext4 rootwait
+  endef
 
-	define Image/cmdline/ext4
-		root=$(ROOTPART) rootfstype=ext4 rootwait
-	endef
-
-	define Image/cmdline/squashfs
+  define Image/cmdline/squashfs
     root=$(ROOTPART) rootfstype=squashfs rootwait
   endef
+  # UEFI Start
+  ifneq ($(CONFIG_EFI_IMAGES),)
 
   define Image/cmdline/efi
     $(subst $(SIGNATURE)-02,$2,$(call Image/cmdline/$(1)))
@@ -79,7 +78,7 @@ ifneq ($(CONFIG_GRUB_IMAGES)$(CONFIG_EFI_IMAGES),)
 	sed \
 		-e 's#@SERIAL_CONFIG@#$(strip $(GRUB_SERIAL_CONFIG))#g' \
 		-e 's#@TERMINAL_CONFIG@#$(strip $(GRUB_TERMINAL_CONFIG))#g' \
-		-e 's#@CMDLINE@#$(strip strip $(call Image/cmdline/efi,$(1),$(EFI_SIGNATURE)) $(BOOTOPTS) $(GRUB_CONSOLE_CMDLINE))#g' \
+		-e 's#@CMDLINE@#$(strip $(call Image/cmdline/efi,$(1),$(EFI_SIGNATURE)) $(BOOTOPTS) $(GRUB_CONSOLE_CMDLINE))#g' \
 		-e 's#@TIMEOUT@#$(GRUB_TIMEOUT)#g' \
 		-e 's#@TITLE@#$(GRUB_TITLE)#g' \
 		-e 's#set root.*#search --file /boot/grub/$(SIGNATURE).cfg --set=root#g' \
@@ -146,15 +145,6 @@ ifneq ($(CONFIG_GRUB_IMAGES)$(CONFIG_EFI_IMAGES),)
   endif
 
   ifneq ($(CONFIG_GRUB_IMAGES),)
-
-	define Image/cmdline/ext4
-		root=$(ROOTPART) rootfstype=ext4 rootwait
-	endef
-
-	define Image/cmdline/squashfs
-    root=$(ROOTPART) rootfstype=squashfs rootwait
-  endef
-
   define Image/Build/grub2
 	# left here because the image builder doesnt need these
 	$(INSTALL_DIR) $(KDIR)/root.grub/boot/grub $(KDIR)/grub2
@@ -181,7 +171,6 @@ ifneq ($(CONFIG_GRUB_IMAGES)$(CONFIG_EFI_IMAGES),)
 		$(CONFIG_TARGET_KERNEL_PARTSIZE) $(KDIR)/root.grub \
 		$(CONFIG_TARGET_ROOTFS_PARTSIZE) $(KDIR)/root.$(1) \
 		256
-
 	grub-bios-setup \
 		--device-map="$(KDIR)/grub2/device.map" \
 		-d "$(KDIR)/grub2" \
@@ -293,13 +282,12 @@ define Image/Build
 ifneq ($(CONFIG_GRUB_IMAGES),)
 	$(call Image/Build/vdi,$(1))
 	$(call Image/Build/vmdk,$(1))
-	$(CP) $(KDIR)/root.$(1) $(BIN_DIR)/$(IMG_PREFIX)-rootfs-$(1).img
 endif
 ifneq ($(CONFIG_EFI_IMAGES),)
 	$(call Image/Build/vdi_efi,$(1))
 	$(call Image/Build/vmdk_efi,$(1))
 endif
-	$(CP) $(KDIR)/root.$(1) $(BIN_DIR)/$(IMG_ROOTFS)-$(1).img
+	$(CP) $(KDIR)/root.$(1) $(BIN_DIR)/$(IMG_PREFIX)-rootfs-$(1).img
   else
 	$(CP) $(KDIR)/root.iso $(BIN_DIR)/$(IMG_PREFIX).iso
   endif
