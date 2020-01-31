@@ -16,7 +16,7 @@ chmod +x ./openwrt-uefi-support/RunMe.sh
 ./openwrt-uefi-support/RunMe.sh apply
 ```
 
-After merging the branch or checking out openwrt-uefi-support repository, run make menuconfig.
+After patches, run make menuconfig.
 
 Go to **Target Images** and make sure that **Build EFI grub images** option is checked.
 
