@@ -3,7 +3,7 @@ Since OpenWrt Project has not yet accepted any UEFI-Boot approach, extract based
 
 Tested in Openwrt 19.07 source branch.
 
-![](https://raw.githubusercontent.com/falafalafala1668/OpenWrt-UEFI-Support/master/src/Screenshots/2.png)
+![](https://github.com/falafalafala1668/OpenWrt-UEFI-Support/blob/master/src/Screenshots/2.png)
 
 **UEFI Secure Boot Coming Soon.**
 
@@ -20,7 +20,7 @@ After merging the branch or checking out openwrt-uefi-support repository, run ma
 
 Go to **Target Images** and make sure that **Build EFI grub images** option is checked.
 
-![](https://raw.githubusercontent.com/falafalafala1668/OpenWrt-UEFI-Support/master/src/Screenshots/1.png)
+![](https://github.com/falafalafala1668/OpenWrt-UEFI-Support/blob/master/src/Screenshots/1.png)
 
 **Restore**
 
