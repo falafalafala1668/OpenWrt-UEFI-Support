@@ -27,6 +27,16 @@ Go to **Target Images** and make sure that **Build EFI grub images** option is c
 ```
 ./openwrt-uefi-support/RunMe.sh restore
 ```
+# Known issues
+
+Using `sysupgrade` and `luci` upgrade new UEFI Image will show error or damaged,Because I have removed hybrid boot support to avoid some partition table issues.
+
+**Temporary Solution**
+IMPORTANT: It will make your system corrupt,Please check your image before upgrade!!!
+```
+sysupgrade with "-F" parameter
+luci use Force Update
+```
 
 # Thanks
 [OpenWrt Project](https://github.com/openwrt/openwrt.git)
