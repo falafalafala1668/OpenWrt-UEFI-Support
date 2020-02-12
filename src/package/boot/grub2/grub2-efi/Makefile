@@ -3,7 +3,7 @@ include $(INCLUDE_DIR)/kernel.mk
 
 PKG_NAME:=grub-efi
 
-include ../common.mk
+include ../Makefile
 
 TAR_OPTIONS:= --transform 's/grub-${PKG_VERSION}/${PKG_NAME}-${PKG_VERSION}/' $(TAR_OPTIONS)
 
