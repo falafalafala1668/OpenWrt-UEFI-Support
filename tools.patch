@@ -1,4 +1,4 @@
---- tools/Makefile	2020-02-12 15:19:23.000000000 +0800
+--- tools/Makefile	2020-02-12 21:19:16.898220299 +0800
 +++ OpenWrt-UEFI-Support/src/tools/Makefile	2020-02-12 15:45:33.247482863 +0800
 @@ -29,6 +29,7 @@
  tools-y += mtools dosfstools libressl

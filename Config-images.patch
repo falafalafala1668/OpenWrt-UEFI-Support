@@ -1,5 +1,5 @@
---- config/Config-images.in	2020-02-12 16:01:41.392079809 +0800
-+++ OpenWrt-UEFI-Support/src/config/Config-images.in	2020-02-12 15:45:33.245137149 +0800
+--- config/Config-images.in	2020-02-12 21:19:16.889265886 +0800
++++ OpenWrt-UEFI-Support/src/config/Config-images.in	2020-02-12 21:20:20.088978353 +0800
 @@ -195,19 +195,26 @@
  		select PACKAGE_grub2
  		default y
