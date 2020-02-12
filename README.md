@@ -12,8 +12,8 @@ In your OpenWrt source dir, enter:
 
 ```
 git clone https://github.com/falafalafala1668/OpenWrt-UEFI-Support.git
-chmod +x ./openwrt-uefi-support/RunMe.sh
-./openwrt-uefi-support/RunMe.sh apply
+chmod +x ./OpenWrt-UEFI-Support/RunMe.sh
+./OpenWrt-UEFI-Support/RunMe.sh apply
 ```
 
 After patches, run make menuconfig.
@@ -25,7 +25,7 @@ Go to **Target Images** and make sure that **Build EFI grub images** option is c
 **Restore**
 
 ```
-./openwrt-uefi-support/RunMe.sh restore
+./OpenWrt-UEFI-Support/RunMe.sh restore
 ```
 # Known issues
 
