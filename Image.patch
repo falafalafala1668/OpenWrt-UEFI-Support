@@ -1,5 +1,5 @@
---- target/linux/x86/image/Makefile	2020-02-12 21:19:16.893952572 +0800
-+++ OpenWrt-UEFI-Support/src/target/linux/x86/image/Makefile	2020-02-12 21:58:25.694390665 +0800
+--- target/linux/x86/image/Makefile	2020-02-12 21:19:16.000000000 +0800
++++ OpenWrt-UEFI-Support/src/target/linux/x86/image/Makefile	2020-02-12 23:48:00.294881031 +0800
 @@ -1,4 +1,4 @@
 -# 
 +#
@@ -142,14 +142,13 @@
  	$(STAGING_DIR_HOST)/bin/qemu-img convert -f raw -O vmdk -o adapter_type=lsilogic,subformat=monolithicFlat \
  		$(BIN_DIR)/$(IMG_COMBINED)-$(1).img \
  		$(BIN_DIR)/$(IMG_COMBINED)-$(1)-esxi.vmdk
--  endef
-+	endef
-+	define Image/Build/vmdk_efi
+   endef
++  define Image/Build/vmdk_efi
 +	rm $(BIN_DIR)/$(IMG_PREFIX)-uefi-gpt-$(1).vmdk || true
 +	$(STAGING_DIR_HOST)/bin/qemu-img convert -f raw -O vmdk \
 +		$(BIN_DIR)/$(IMG_PREFIX)-uefi-gpt-$(1).img \
 +		$(BIN_DIR)/$(IMG_PREFIX)-uefi-gpt-$(1).vmdk
-+	endef
++  endef
  endif
  
  define Image/Build/gzip

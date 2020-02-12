@@ -1,5 +1,5 @@
 --- package/boot/grub2/Makefile	2020-02-12 21:19:16.000000000 +0800
-+++ OpenWrt-UEFI-Support/src/package/boot/grub2/Makefile	2020-02-12 22:12:25.236419328 +0800
++++ OpenWrt-UEFI-Support/src/package/boot/grub2/Makefile	2020-02-12 22:12:25.000000000 +0800
 @@ -8,26 +8,29 @@
  include $(TOPDIR)/rules.mk
  include $(INCLUDE_DIR)/kernel.mk

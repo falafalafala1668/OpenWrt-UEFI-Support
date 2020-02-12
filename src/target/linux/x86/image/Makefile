@@ -220,13 +220,13 @@ ifneq ($(CONFIG_VMDK_IMAGES),)
 	$(STAGING_DIR_HOST)/bin/qemu-img convert -f raw -O vmdk -o adapter_type=lsilogic,subformat=monolithicFlat \
 		$(BIN_DIR)/$(IMG_COMBINED)-$(1).img \
 		$(BIN_DIR)/$(IMG_COMBINED)-$(1)-esxi.vmdk
-	endef
-	define Image/Build/vmdk_efi
+  endef
+  define Image/Build/vmdk_efi
 	rm $(BIN_DIR)/$(IMG_PREFIX)-uefi-gpt-$(1).vmdk || true
 	$(STAGING_DIR_HOST)/bin/qemu-img convert -f raw -O vmdk \
 		$(BIN_DIR)/$(IMG_PREFIX)-uefi-gpt-$(1).img \
 		$(BIN_DIR)/$(IMG_PREFIX)-uefi-gpt-$(1).vmdk
-	endef
+  endef
 endif
 
 define Image/Build/gzip
