@@ -1,5 +1,5 @@
 --- target/linux/x86/image/Makefile	2020-02-12 22:22:37.000000000 +0800
-+++ OpenWrt-UEFI-Support/src/target/linux/x86/image/Makefile	2020-02-12 22:38:09.284516090 +0800
++++ OpenWrt-UEFI-Support/src/target/linux/x86/image/Makefile	2020-02-12 23:46:44.244288015 +0800
 @@ -1,4 +1,4 @@
 -# 
 +#
@@ -133,12 +133,12 @@
  		$(BIN_DIR)/$(IMG_PREFIX)-combined-$(1).img \
  		$(BIN_DIR)/$(IMG_PREFIX)-combined-$(1).vmdk
    endef
-+	define Image/Build/vmdk_efi
++  define Image/Build/vmdk_efi
 +	rm $(BIN_DIR)/$(IMG_PREFIX)-uefi-gpt-$(1).vmdk || true
 +	qemu-img convert -f raw -O vmdk \
 +		$(BIN_DIR)/$(IMG_PREFIX)-uefi-gpt-$(1).img \
 +		$(BIN_DIR)/$(IMG_PREFIX)-uefi-gpt-$(1).vmdk
-+	endef
++  endef
  endif
  
  define Image/Build/gzip
