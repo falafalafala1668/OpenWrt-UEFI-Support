@@ -6,7 +6,6 @@ restore_patch() {
   patch -p0 -R < OpenWrt-UEFI-Support/tools.patch
 }
 if [ "$1" = "apply" ]; then
-  restore_patch
   git pull OpenWrt-UEFI-Support
   patch -p0 < OpenWrt-UEFI-Support/Config-images.patch
   patch -p0 < OpenWrt-UEFI-Support/common.patch
