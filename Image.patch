@@ -1,5 +1,5 @@
---- target/linux/x86/image/Makefile	2020-01-31 23:39:28.279463761 +0800
-+++ openwrt-uefi-support/src/target/linux/x86/image/Makefile	2020-01-31 23:39:05.726306000 +0800
+--- target/linux/x86/image/Makefile	2020-02-12 22:22:37.000000000 +0800
++++ OpenWrt-UEFI-Support/src/target/linux/x86/image/Makefile	2020-02-12 22:38:09.284516090 +0800
 @@ -1,4 +1,4 @@
 -# 
 +#
@@ -16,7 +16,7 @@
  GRUB2_MODULES_ISO = biosdisk boot chain configfile iso9660 linux ls part_msdos reboot serial test vga
  GRUB_TERMINALS =
  GRUB_SERIAL_CONFIG =
-@@ -41,25 +44,91 @@
+@@ -41,13 +44,14 @@
  endif
  
  SIGNATURE:=$(shell perl -e 'printf("%08x", rand(0xFFFFFFFF))')
@@ -29,24 +29,21 @@
  
 -ifneq ($(CONFIG_GRUB_IMAGES),)
 +ifneq ($(CONFIG_GRUB_IMAGES)$(CONFIG_EFI_IMAGES),)
+ 
+   BOOTOPTS:=$(call qstrip,$(CONFIG_GRUB_BOOTOPTS))
+ 
+@@ -59,6 +63,72 @@
+     root=$(ROOTPART) rootfstype=squashfs rootwait
+   endef
+ 
++  # UEFI Start
++  ifneq ($(CONFIG_EFI_IMAGES),)
 +
-+BOOTOPTS:=$(call qstrip,$(CONFIG_GRUB_BOOTOPTS))
++  define Image/cmdline/efi
++    $(subst $(SIGNATURE)-02,$2,$(call Image/cmdline/$(1)))
++  endef
 +
-+define Image/cmdline/ext4
-+  root=$(ROOTPART) rootfstype=ext4 rootwait
-+endef
-+
-+define Image/cmdline/squashfs
-+  root=$(ROOTPART) rootfstype=squashfs rootwait
-+endef
-+
-+# UEFI Start
-+ifneq ($(CONFIG_EFI_IMAGES),)
-+define Image/cmdline/efi
-+  $(subst $(SIGNATURE)-02,$2,$(call Image/cmdline/$(1)))
-+endef
-+
-+define Image/Build/efi
++  define Image/Build/efi
 +	# left here because the image builder doesnt need these
 +	rm -rf $(KDIR)/root.grub/ || true
 +	$(INSTALL_DIR) $(KDIR)/root.grub/boot/grub $(KDIR)/grub2
@@ -63,13 +60,9 @@
 +	sed \
 +		-e 's/(hd0,msdos1)/(hd0,gpt1)/' ./grub-early.cfg > \
 +			$(KDIR)/root.grub/boot/grub/grub-early.cfg
- 
--  BOOTOPTS:=$(call qstrip,$(CONFIG_GRUB_BOOTOPTS))
++
 +	$(CP) $(KDIR)/root.grub/boot/grub/grub.cfg $(KDIR)/root.grub/boot/grub/$(SIGNATURE).cfg
- 
--  define Image/cmdline/ext4
--    root=$(ROOTPART) rootfstype=ext4 rootwait
--  endef
++
 +	# Build the efi grub version
 +	rm -rf $(KDIR)/grub2.efi/ || true
 +	$(INSTALL_DIR) $(KDIR)/grub2.efi/efi/boot/
@@ -99,72 +92,53 @@
 +		$(CONFIG_TARGET_KERNEL_PARTSIZE) $(KDIR)/kernel.efi \
 +		$(CONFIG_TARGET_ROOTFS_PARTSIZE) $(KDIR)/root.$(1) \
 +		256
- 
--  define Image/cmdline/squashfs
--    root=$(ROOTPART) rootfstype=squashfs rootwait
--  endef
++
 +	# Convert the MBR partition to GPT and set EFI ROOTFS signature
 +	dd if=/dev/zero of="$(BIN_DIR)/$(IMG_PREFIX)-uefi-gpt-$(1).img" bs=512 count=33 conv=notrunc oflag=append
 +	sgdisk -g "$(BIN_DIR)/$(IMG_PREFIX)-uefi-gpt-$(1).img"
 +	sgdisk -t 1:EF00 "$(BIN_DIR)/$(IMG_PREFIX)-uefi-gpt-$(1).img"
 +	sgdisk -u 2:$(EFI_SIGNATURE) "$(BIN_DIR)/$(IMG_PREFIX)-uefi-gpt-$(1).img"
-+endef
-+endif
- 
--  define Image/Build/grub2
-+ifneq ($(CONFIG_GRUB_IMAGES),)
-+define Image/Build/grub2
++  endef
++  endif
++
++  ifneq ($(CONFIG_GRUB_IMAGES),)
+   define Image/Build/grub2
  	# left here because the image builder doesnt need these
  	$(INSTALL_DIR) $(KDIR)/root.grub/boot/grub $(KDIR)/grub2
- 	$(CP) $(KDIR)/bzImage $(KDIR)/root.grub/boot/vmlinuz
-@@ -90,7 +159,9 @@
- 		-d "$(KDIR)/grub2" \
+@@ -91,6 +161,8 @@
  		-r "hd0,msdos1" \
  		"$(BIN_DIR)/$(IMG_PREFIX)-combined-$(1).img"
--  endef
-+endef
-+endif
+   endef
++  endif
 +
  endif
  
  define Image/Build/squashfs
-@@ -124,35 +195,54 @@
- endef
- 
- ifneq ($(CONFIG_VDI_IMAGES),)
--  define Image/Build/vdi
-+define Image/Build/vdi
- 	rm $(BIN_DIR)/$(IMG_PREFIX)-combined-$(1).vdi || true
- 	qemu-img convert -f raw -O vdi \
+@@ -130,6 +202,14 @@
  		$(BIN_DIR)/$(IMG_PREFIX)-combined-$(1).img \
  		$(BIN_DIR)/$(IMG_PREFIX)-combined-$(1).vdi
--  endef
-+	endef
-+	define Image/Build/vdi_efi
+   endef
++  define Image/Build/vdi_efi
 +	rm $(BIN_DIR)/$(IMG_PREFIX)-uefi-gpt-$(1).vdi || true
 +	qemu-img convert -f raw -O vdi \
 +		$(BIN_DIR)/$(IMG_PREFIX)-uefi-gpt-$(1).img \
 +		$(BIN_DIR)/$(IMG_PREFIX)-uefi-gpt-$(1).vdi
 +	# XXX: VBoxManage insists on setting perms to 0600
 +	chmod 0644 $(BIN_DIR)/$(IMG_PREFIX)-uefi-gpt-$(1).vdi
-+endef
++  endef
  endif
  
  ifneq ($(CONFIG_VMDK_IMAGES),)
--  define Image/Build/vmdk
-+define Image/Build/vmdk
- 	rm $(BIN_DIR)/$(IMG_PREFIX)-combined-$(1).vmdk || true
- 	qemu-img convert -f raw -O vmdk \
+@@ -139,20 +219,31 @@
  		$(BIN_DIR)/$(IMG_PREFIX)-combined-$(1).img \
  		$(BIN_DIR)/$(IMG_PREFIX)-combined-$(1).vmdk
--  endef
-+endef
-+define Image/Build/vmdk_efi
+   endef
++	define Image/Build/vmdk_efi
 +	rm $(BIN_DIR)/$(IMG_PREFIX)-uefi-gpt-$(1).vmdk || true
 +	qemu-img convert -f raw -O vmdk \
 +		$(BIN_DIR)/$(IMG_PREFIX)-uefi-gpt-$(1).img \
 +		$(BIN_DIR)/$(IMG_PREFIX)-uefi-gpt-$(1).vmdk
-+endef
++	endef
  endif
  
  define Image/Build/gzip
@@ -192,12 +166,9 @@
  endif
  
  define Image/BuildKernel
-@@ -169,14 +259,21 @@
- 
- define Image/Build
+@@ -171,8 +262,15 @@
  	$(call Image/Build/$(1))
--  ifneq ($(1),iso)
-+ifneq ($(1),iso)
+   ifneq ($(1),iso)
  	$(call Image/Build/grub2,$(1))
 +	$(call Image/Build/efi,$(1))
 +ifneq ($(CONFIG_GRUB_IMAGES),)
@@ -209,11 +180,5 @@
 +	$(call Image/Build/vmdk_efi,$(1))
 +endif
  	$(CP) $(KDIR)/root.$(1) $(BIN_DIR)/$(IMG_PREFIX)-rootfs-$(1).img
--  else
-+else
+   else
  	$(CP) $(KDIR)/root.iso $(BIN_DIR)/$(IMG_PREFIX).iso
--  endif
-+endif
- 	$(CP) $(KDIR)/bzImage $(BIN_DIR)/$(IMG_PREFIX)-vmlinuz
- 	$(call Image/Build/gzip/$(1))
- ifeq ($(CONFIG_TARGET_ROOTFS_INITRAMFS),y)

@@ -1,5 +1,5 @@
---- tools/Makefile	2020-01-30 20:30:37.615740610 +0800
-+++ openwrt-uefi-support/src/tools/Makefile	2020-01-29 23:30:27.239846000 +0800
+--- tools/Makefile	2020-02-12 22:22:37.265483763 +0800
++++ OpenWrt-UEFI-Support/src/tools/Makefile	2020-02-12 18:27:33.644791065 +0800
 @@ -25,10 +25,11 @@
  tools-y += m4 libtool autoconf automake flex bison pkg-config mklibs zlib
  tools-y += sstrip make-ext4fs e2fsprogs mtd-utils mkimage

@@ -1,6 +1,6 @@
---- config/Config-images.in	2020-01-30 20:30:37.599740700 +0800
-+++ openwrt-uefi-support/src/config/Config-images.in	2020-01-30 15:04:20.232528000 +0800
-@@ -195,19 +195,27 @@
+--- config/Config-images.in	2020-02-12 22:22:37.215089581 +0800
++++ OpenWrt-UEFI-Support/src/config/Config-images.in	2020-02-12 18:27:33.642392138 +0800
+@@ -195,19 +195,26 @@
  		select PACKAGE_grub2
  		default y
  
@@ -8,7 +8,6 @@
 +		bool "Build EFI GRUB images (Linux x86 or x86_64 host only)"
 +		depends on TARGET_x86
 +		depends on TARGET_ROOTFS_EXT4FS || TARGET_ROOTFS_ISO || TARGET_ROOTFS_JFFS2 || TARGET_ROOTFS_SQUASHFS
-+		select PACKAGE_grub2
 +		select PACKAGE_grub2-efi
 +		default y
 +
@@ -31,7 +30,7 @@
  		default 38400 if TARGET_x86_generic
  		default 115200
  
-@@ -218,20 +226,20 @@
+@@ -218,20 +225,20 @@
  
  	config GRUB_BOOTOPTS
  		string "Extra kernel boot options"
@@ -55,7 +54,7 @@
  		default "OpenWrt"
  		help
  		  This is the title of the GRUB menu entry.
-@@ -241,23 +249,17 @@
+@@ -241,23 +248,17 @@
  		bool "Build VirtualBox image files (VDI)"
  		depends on TARGET_x86
  		select GRUB_IMAGES
@@ -80,7 +79,7 @@
  		default y
  
  	comment "Image Options"
-@@ -266,21 +268,21 @@
+@@ -266,21 +267,21 @@
  
  	config TARGET_KERNEL_PARTSIZE
  		int "Kernel partition size (in MB)"
