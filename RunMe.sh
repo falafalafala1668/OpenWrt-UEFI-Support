@@ -21,8 +21,8 @@ generate_patch() {
   diff -Naur target/linux/x86/image/Makefile OpenWrt-UEFI-Support/src/target/linux/x86/image/Makefile > OpenWrt-UEFI-Support/Image.patch
 }
 
-if [ "$1" = "apply" ]; then
-  update
+case "$1" in
+  "apply")
   echo "###### Applying patches ######"
   patch -p0 < OpenWrt-UEFI-Support/Config-images.patch
 #  patch -p0 < OpenWrt-UEFI-Support/common.patch
@@ -33,13 +33,20 @@ if [ "$1" = "apply" ]; then
   cp -r OpenWrt-UEFI-Support/src/target/linux/x86/image/gen_image_efi.sh target/linux/x86/image/
   cp -r OpenWrt-UEFI-Support/src/tools/gptfdisk tools/
   cp -r OpenWrt-UEFI-Support/src/tools/popt tools/
-elif [ "$1" = "restore" ]; then
+  ;;
+  "restore")
   restore_patch
   rm -rf package/boot/grub2/grub2-efi package/boot/grub2/common.mk
   rm -rf tools/gptfdisk tools/popt
   rm -rf target/linux/x86/image/gen_image_efi.sh
-elif [ "$1" = "generate" ]; then
+  ;;
+  "generate")
   generate_patch
-else
+  ;;
+  "update")
+  update
+  ;;
+  *)
   echo "Please add parameter. Apply or Restore\n e.g: ./OpenWrt-UEFI-Support/RunMe.sh apply"
-fi
+  ;;
+esac
