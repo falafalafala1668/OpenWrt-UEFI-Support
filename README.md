@@ -8,11 +8,26 @@ Tested in Openwrt 19.07 source branch.
 **UEFI Secure Boot Coming Soon.**
 
 # Usage
-In your OpenWrt source dir, enter:
+Before clone the patches, please check your OpenWrt source branch:
 
+**Master**
 ```
 git clone https://github.com/falafalafala1668/OpenWrt-UEFI-Support.git
-chmod +x ./OpenWrt-UEFI-Support/RunMe.sh
+```
+
+**19.07**
+```
+git clone https://github.com/falafalafala1668/OpenWrt-UEFI-Support.git -b openwrt-19.07
+```
+
+**18.06**
+```
+git clone https://github.com/falafalafala1668/OpenWrt-UEFI-Support.git -b openwrt-18.06
+```
+
+then, in your OpenWrt source dir, enter:
+
+```
 ./OpenWrt-UEFI-Support/RunMe.sh apply
 ```
 
@@ -27,6 +42,17 @@ Go to **Target Images** and make sure that **Build EFI grub images** option is c
 ```
 ./OpenWrt-UEFI-Support/RunMe.sh restore
 ```
+
+# Advanced Settings
+If you OpenWrt isn't official sources, you can generate patches by yourself.
+```
+./OpenWrt-UEFI-Support/RunMe.sh generate
+```
+then apply the patches
+```
+./OpenWrt-UEFI-Support/RunMe.sh apply
+```
+
 # Known issues
 
 Using `sysupgrade` and `luci` upgrade new UEFI Image will show error or damaged,Because I have removed hybrid boot support to avoid some partition table issues.
