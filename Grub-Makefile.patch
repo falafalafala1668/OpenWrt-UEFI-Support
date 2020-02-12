@@ -1,0 +1,31 @@
+--- package/boot/grub2/Makefile	2020-02-12 18:17:19.707963689 +0800
++++ OpenWrt-UEFI-Support/src/package/boot/grub2/Makefile	2020-02-12 18:18:18.230440476 +0800
+@@ -25,10 +25,14 @@
+ 
+ PKG_FLAGS:=nonshared
+ 
++PATCH_DIR := ../patches
++HOST_PATCH_DIR := ../patches
++HOST_BUILD_DIR := $(BUILD_DIR_HOST)/$(PKG_NAME)-$(PKG_VERSION)
++
+ include $(INCLUDE_DIR)/host-build.mk
+ include $(INCLUDE_DIR)/package.mk
+ 
+-define Package/grub2
++define Package/grub2/Default
+   CATEGORY:=Boot Loaders
+   SECTION:=boot
+   TITLE:=GRand Unified Bootloader
+@@ -82,12 +86,3 @@
+ 	$(SED) 's,(RANLIB),(TARGET_RANLIB),' $(HOST_BUILD_DIR)/grub-core/Makefile.in
+ 	$(Host/Configure/Default)
+ endef
+-
+-define Package/grub2-editenv/install
+-	$(INSTALL_DIR) $(1)/usr/sbin
+-	$(INSTALL_BIN) $(PKG_BUILD_DIR)/grub-editenv $(1)/usr/sbin/
+-endef
+-
+-$(eval $(call HostBuild))
+-$(eval $(call BuildPackage,grub2))
+-$(eval $(call BuildPackage,grub2-editenv))
