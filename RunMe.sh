@@ -5,8 +5,15 @@ restore_patch() {
   patch -p0 -R < OpenWrt-UEFI-Support/Image.patch
   patch -p0 -R < OpenWrt-UEFI-Support/tools.patch
 }
+
+update() {
+  echo "Updating patches"
+  pushd OpenWrt-UEFI-Support
+  git pull
+  popd
+}
 if [ "$1" = "apply" ]; then
-  git pull OpenWrt-UEFI-Support
+  update
   patch -p0 < OpenWrt-UEFI-Support/Config-images.patch
   patch -p0 < OpenWrt-UEFI-Support/common.patch
   patch -p0 < OpenWrt-UEFI-Support/Image.patch
