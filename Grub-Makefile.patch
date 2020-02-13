@@ -1,12 +1,12 @@
---- package/boot/grub2/Makefile	2020-02-12 18:25:47.876068691 +0800
-+++ OpenWrt-UEFI-Support/src/package/boot/grub2/Makefile	2020-02-12 18:20:58.734177942 +0800
+--- package/boot/grub2/Makefile	2020-02-12 14:29:15.000000000 +0800
++++ OpenWrt-UEFI-Support/src/package/boot/grub2/Makefile	2020-02-13 16:03:56.188091571 +0800
 @@ -25,10 +25,14 @@
  
  PKG_FLAGS:=nonshared
  
-+PATCH_DIR := ../patches
-+HOST_PATCH_DIR := ../patches
-+HOST_BUILD_DIR := $(BUILD_DIR_HOST)/$(PKG_NAME)-$(PKG_VERSION)
++#PATCH_DIR := ../patches
++#HOST_PATCH_DIR := ../patches
++#HOST_BUILD_DIR := $(BUILD_DIR_HOST)/$(PKG_NAME)-$(PKG_VERSION)
 +
  include $(INCLUDE_DIR)/host-build.mk
  include $(INCLUDE_DIR)/package.mk
@@ -16,7 +16,26 @@
    CATEGORY:=Boot Loaders
    SECTION:=boot
    TITLE:=GRand Unified Bootloader
-@@ -82,12 +86,3 @@
+@@ -36,18 +40,6 @@
+   DEPENDS:=@TARGET_x86||TARGET_x86_64
+ endef
+ 
+-define Package/grub2-editenv
+-  CATEGORY:=Utilities
+-  SECTION:=utils
+-  SUBMENU:=Boot Loaders
+-  TITLE:=Grub2 Environment editor
+-  URL:=http://www.gnu.org/software/grub/
+-  DEPENDS:=@TARGET_x86||TARGET_x86_64
+-endef
+-
+-define Package/grub2-editenv/description
+-	Edit grub2 environment files.
+-endef
+ 
+ HOST_BUILD_PREFIX := $(STAGING_DIR_HOST)
+ 
+@@ -82,12 +74,3 @@
  	$(SED) 's,(RANLIB),(TARGET_RANLIB),' $(HOST_BUILD_DIR)/grub-core/Makefile.in
  	$(Host/Configure/Default)
  endef

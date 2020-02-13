@@ -1,6 +1,6 @@
---- config/Config-images.in	2020-01-30 20:30:37.599740700 +0800
-+++ openwrt-uefi-support/src/config/Config-images.in	2020-01-30 15:04:20.232528000 +0800
-@@ -195,19 +195,27 @@
+--- config/Config-images.in	2020-02-12 14:30:07.413413408 +0800
++++ OpenWrt-UEFI-Support/src/config/Config-images.in	2020-02-13 16:00:02.762340325 +0800
+@@ -193,21 +193,28 @@
  		select PACKAGE_grub2
  		default y
  
@@ -8,7 +8,6 @@
 +		bool "Build EFI GRUB images (Linux x86 or x86_64 host only)"
 +		depends on TARGET_x86
 +		depends on TARGET_ROOTFS_EXT4FS || TARGET_ROOTFS_ISO || TARGET_ROOTFS_JFFS2 || TARGET_ROOTFS_SQUASHFS
-+		select PACKAGE_grub2
 +		select PACKAGE_grub2-efi
 +		default y
 +
@@ -16,13 +15,15 @@
  		bool "Use Console Terminal (in addition to Serial)"
 -		depends on GRUB_IMAGES
 +		depends on GRUB_IMAGES || EFI_IMAGES
+ 		default n if (TARGET_x86_generic_Soekris45xx || TARGET_x86_generic_Soekris48xx || TARGET_x86_net5501 || TARGET_x86_geos || TARGET_x86_alix2)
  		default y
  
  	config GRUB_SERIAL
  		string "Serial port device"
 -		depends on GRUB_IMAGES
 +		depends on GRUB_IMAGES || EFI_IMAGES
- 		default "ttyS0"
+ 		default "hvc0" if TARGET_x86_xen_domu
+ 		default "ttyS0" if ! TARGET_x86_xen_domu
  
  	config GRUB_BAUDRATE
  		int "Serial port baud rate"
@@ -31,12 +32,13 @@
  		default 38400 if TARGET_x86_generic
  		default 115200
  
-@@ -218,20 +226,20 @@
+@@ -218,18 +225,26 @@
  
  	config GRUB_BOOTOPTS
  		string "Extra kernel boot options"
 -		depends on GRUB_IMAGES
 +		depends on GRUB_IMAGES || EFI_IMAGES
+ 		default "xencons=hvc" if TARGET_x86_xen_domu
  		help
  		  If you don't know, just leave it blank.
  
@@ -48,55 +50,30 @@
  		help
  		  If you don't know, 5 seconds is a reasonable default.
  
- 	config GRUB_TITLE
- 		string "Title for the menu entry in GRUB"
--		depends on GRUB_IMAGES
++	config GRUB_TITLE
++		string "Title for the menu entry in GRUB"
 +		depends on GRUB_IMAGES || EFI_IMAGES
- 		default "OpenWrt"
- 		help
- 		  This is the title of the GRUB menu entry.
-@@ -241,23 +249,17 @@
++		default "OpenWrt"
++		help
++		  This is the title of the GRUB menu entry.
++		  If unspecified, it defaults to OpenWrt.
++
+ 	config VDI_IMAGES
  		bool "Build VirtualBox image files (VDI)"
- 		depends on TARGET_x86
- 		select GRUB_IMAGES
--		select TARGET_IMAGES_PAD
- 		select PACKAGE_kmod-e1000
- 
- 	config VMDK_IMAGES
- 		bool "Build VMware image files (VMDK)"
- 		depends on TARGET_x86
- 		select GRUB_IMAGES
--		select TARGET_IMAGES_PAD
- 		select PACKAGE_kmod-e1000
- 
--	config TARGET_IMAGES_PAD
--		bool "Pad images to filesystem size (for JFFS2)"
--		depends on GRUB_IMAGES
--
- 	config TARGET_IMAGES_GZIP
- 		bool "GZip images"
--		depends on TARGET_IMAGES_PAD || TARGET_ROOTFS_EXT4FS || TARGET_x86
-+		depends on TARGET_ROOTFS_EXT4FS || TARGET_x86 || TARGET_armvirt || TARGET_malta
- 		default y
- 
- 	comment "Image Options"
-@@ -266,21 +268,21 @@
+ 		depends on TARGET_x86 || TARGET_x86_64
+@@ -259,19 +274,19 @@
  
  	config TARGET_KERNEL_PARTSIZE
  		int "Kernel partition size (in MB)"
 -		depends on GRUB_IMAGES || USES_BOOT_PART
 +		depends on GRUB_IMAGES || EFI_IMAGES || USES_BOOT_PART
- 		default 8 if TARGET_apm821xx_sata
--		default 20 if TARGET_brcm2708
-+		default 64 if TARGET_brcm2708
  		default 16
  
  	config TARGET_ROOTFS_PARTSIZE
  		int "Root filesystem partition size (in MB)"
--		depends on GRUB_IMAGES || USES_ROOTFS_PART || TARGET_ROOTFS_EXT4FS || TARGET_omap || TARGET_rb532 || TARGET_sunxi || TARGET_uml
--		default 256
-+		depends on GRUB_IMAGES || EFI_IMAGES || USES_ROOTFS_PART || TARGET_ROOTFS_EXT4FS || TARGET_omap || TARGET_rb532 || TARGET_sunxi || TARGET_uml
-+		default 128
+-		depends on GRUB_IMAGES || USES_ROOTFS_PART || TARGET_ROOTFS_EXT4FS || TARGET_rb532 || TARGET_mvebu || TARGET_uml
++		depends on GRUB_IMAGES || EFI_IMAGES || USES_ROOTFS_PART || TARGET_ROOTFS_EXT4FS || TARGET_rb532 || TARGET_mvebu || TARGET_uml
+ 		default 256
  		help
  		  Select the root filesystem partition size.
  

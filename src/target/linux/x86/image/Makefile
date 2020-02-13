@@ -9,11 +9,11 @@ include $(INCLUDE_DIR)/image.mk
 
 export PATH=$(TARGET_PATH):/sbin
 
-GRUB2_MODULES = biosdisk boot chain configfile ext2 linux ls part_msdos reboot serial test vga
+GRUB2_MODULES = biosdisk boot chain configfile ext2 linux ls part_msdos reboot serial vga
 GRUB2_MODULES_LEGACY = $(GRUB2_MODULES)
 GRUB2_MODULES_LEGACY += part_gpt search fat exfat
 GRUB2_MODULES_EFI = boot chain configfile ext2 linux ls part_msdos reboot serial part_gpt part_msdos search fat exfat ext2 efi_gop efi_uga gfxterm
-GRUB2_MODULES_ISO = biosdisk boot chain configfile iso9660 linux ls part_msdos reboot serial test vga
+GRUB2_MODULES_ISO = biosdisk boot chain configfile iso9660 linux ls part_msdos reboot serial vga
 GRUB_TERMINALS =
 GRUB_SERIAL_CONFIG =
 GRUB_TERMINAL_CONFIG =
@@ -49,27 +49,31 @@ ROOTPART:=$(call qstrip,$(CONFIG_TARGET_ROOTFS_PARTNAME))
 ROOTPART:=$(if $(ROOTPART),$(ROOTPART),PARTUUID=$(SIGNATURE)-02)
 
 GRUB_TIMEOUT:=$(call qstrip,$(CONFIG_GRUB_TIMEOUT))
-GRUB_TITLE:=$(call qstrip,$(CONFIG_GRUB_TITLE))
+
+ifneq ($(CONFIG_TARGET_x86_xen_domu),)
+  GRUB_ROOT = xen/xvda,msdos1
+endif
 
 ifneq ($(CONFIG_GRUB_IMAGES)$(CONFIG_EFI_IMAGES),)
 
-BOOTOPTS:=$(call qstrip,$(CONFIG_GRUB_BOOTOPTS))
+  BOOTOPTS:=$(call qstrip,$(CONFIG_GRUB_BOOTOPTS))
 
-define Image/cmdline/ext4
-  root=$(ROOTPART) rootfstype=ext4 rootwait
-endef
+  define Image/cmdline/ext4
+    root=$(ROOTPART) rootfstype=ext4 rootwait
+  endef
 
-define Image/cmdline/squashfs
-  root=$(ROOTPART) rootfstype=squashfs rootwait
-endef
+  define Image/cmdline/squashfs
+    root=$(ROOTPART) rootfstype=squashfs rootwait
+  endef
 
-# UEFI Start
-ifneq ($(CONFIG_EFI_IMAGES),)
-define Image/cmdline/efi
-  $(subst $(SIGNATURE)-02,$2,$(call Image/cmdline/$(1)))
-endef
+  # UEFI Start
+  ifneq ($(CONFIG_EFI_IMAGES),)
 
-define Image/Build/efi
+  define Image/cmdline/efi
+    $(subst $(SIGNATURE)-02,$2,$(call Image/cmdline/$(1)))
+  endef
+
+  define Image/Build/efi
 	# left here because the image builder doesnt need these
 	rm -rf $(KDIR)/root.grub/ || true
 	$(INSTALL_DIR) $(KDIR)/root.grub/boot/grub $(KDIR)/grub2
@@ -80,7 +84,7 @@ define Image/Build/efi
 		-e 's#@TERMINAL_CONFIG@#$(strip $(GRUB_TERMINAL_CONFIG))#g' \
 		-e 's#@CMDLINE@#$(strip $(call Image/cmdline/efi,$(1),$(EFI_SIGNATURE)) $(BOOTOPTS) $(GRUB_CONSOLE_CMDLINE))#g' \
 		-e 's#@TIMEOUT@#$(GRUB_TIMEOUT)#g' \
-		-e 's#@TITLE@#$(GRUB_TITLE)#g' \
+		-e 's#@ROOT@#$(GRUB_ROOT)#g' \
 		-e 's#set root.*#search --file /boot/grub/$(SIGNATURE).cfg --set=root#g' \
 		./grub.cfg > $(KDIR)/root.grub/boot/grub/grub.cfg
 	sed \
@@ -124,11 +128,11 @@ define Image/Build/efi
 	sgdisk -g "$(BIN_DIR)/$(IMG_PREFIX)-uefi-gpt-$(1).img"
 	sgdisk -t 1:EF00 "$(BIN_DIR)/$(IMG_PREFIX)-uefi-gpt-$(1).img"
 	sgdisk -u 2:$(EFI_SIGNATURE) "$(BIN_DIR)/$(IMG_PREFIX)-uefi-gpt-$(1).img"
-endef
-endif
+  endef
+  endif
 
-ifneq ($(CONFIG_GRUB_IMAGES),)
-define Image/Build/grub2
+  ifneq ($(CONFIG_GRUB_IMAGES),)
+  define Image/Build/grub2
 	# left here because the image builder doesnt need these
 	$(INSTALL_DIR) $(KDIR)/root.grub/boot/grub $(KDIR)/grub2
 	$(CP) $(KDIR)/bzImage $(KDIR)/root.grub/boot/vmlinuz
@@ -146,7 +150,7 @@ define Image/Build/grub2
 		-e 's#@TERMINAL_CONFIG@#$(strip $(GRUB_TERMINAL_CONFIG))#g' \
 		-e 's#@CMDLINE@#$(strip $(call Image/cmdline/$(1)) $(BOOTOPTS) $(GRUB_CONSOLE_CMDLINE))#g' \
 		-e 's#@TIMEOUT@#$(GRUB_TIMEOUT)#g' \
-		-e 's#@TITLE@#$(GRUB_TITLE)#g' \
+		-e 's#@ROOT@#$(GRUB_ROOT)#g' \
 		./grub.cfg > $(KDIR)/root.grub/boot/grub/grub.cfg
 	-$(CP) $(STAGING_DIR_ROOT)/boot/. $(KDIR)/root.grub/boot/
 	PADDING="$(CONFIG_TARGET_IMAGES_PAD)" SIGNATURE="$(SIGNATURE)" PATH="$(TARGET_PATH)" $(SCRIPT_DIR)/gen_image_generic.sh \
@@ -159,8 +163,8 @@ define Image/Build/grub2
 		-d "$(KDIR)/grub2" \
 		-r "hd0,msdos1" \
 		"$(BIN_DIR)/$(IMG_PREFIX)-combined-$(1).img"
-endef
-endif
+  endef
+  endif
 
 endif
 
@@ -187,7 +191,7 @@ define Image/Build/iso
 		-e 's#@TERMINAL_CONFIG@#$(strip $(GRUB_TERMINAL_CONFIG))#g' \
 		-e 's#@CMDLINE@#root=/dev/sr0 rootfstype=iso9660 rootwait $(strip $(call Image/cmdline/$(1)) $(BOOTOPTS) $(GRUB_CONSOLE_CMDLINE))#g' \
 		-e 's#@TIMEOUT@#$(GRUB_TIMEOUT)#g' \
-		-e 's#@TITLE@#$(GRUB_TITLE)#g' \
+		-e 's#@ROOT@#$(GRUB_ROOT)#g' \
 		./grub-iso.cfg > $(KDIR)/root.grub/boot/grub/grub.cfg
 	-$(CP) $(STAGING_DIR_ROOT)/boot/. $(KDIR)/root.grub/boot/
 	mkisofs -R -b boot/grub/eltorito.img -no-emul-boot -boot-info-table \
@@ -195,35 +199,37 @@ define Image/Build/iso
 endef
 
 ifneq ($(CONFIG_VDI_IMAGES),)
-define Image/Build/vdi
+  define Image/Build/vdi
 	rm $(BIN_DIR)/$(IMG_PREFIX)-combined-$(1).vdi || true
 	qemu-img convert -f raw -O vdi \
 		$(BIN_DIR)/$(IMG_PREFIX)-combined-$(1).img \
 		$(BIN_DIR)/$(IMG_PREFIX)-combined-$(1).vdi
-	endef
-	define Image/Build/vdi_efi
+		# XXX: VBoxManage insists on setting perms to 0600
+		chmod 0644 $(BIN_DIR)/$(IMG_PREFIX)-combined-$(1).vdi
+  endef
+  define Image/Build/vdi_efi
 	rm $(BIN_DIR)/$(IMG_PREFIX)-uefi-gpt-$(1).vdi || true
 	qemu-img convert -f raw -O vdi \
 		$(BIN_DIR)/$(IMG_PREFIX)-uefi-gpt-$(1).img \
 		$(BIN_DIR)/$(IMG_PREFIX)-uefi-gpt-$(1).vdi
 	# XXX: VBoxManage insists on setting perms to 0600
 	chmod 0644 $(BIN_DIR)/$(IMG_PREFIX)-uefi-gpt-$(1).vdi
-endef
+  endef
 endif
 
 ifneq ($(CONFIG_VMDK_IMAGES),)
-define Image/Build/vmdk
+  define Image/Build/vmdk
 	rm $(BIN_DIR)/$(IMG_PREFIX)-combined-$(1).vmdk || true
 	qemu-img convert -f raw -O vmdk \
 		$(BIN_DIR)/$(IMG_PREFIX)-combined-$(1).img \
 		$(BIN_DIR)/$(IMG_PREFIX)-combined-$(1).vmdk
-endef
-define Image/Build/vmdk_efi
+  endef
+  define Image/Build/vmdk_efi
 	rm $(BIN_DIR)/$(IMG_PREFIX)-uefi-gpt-$(1).vmdk || true
 	qemu-img convert -f raw -O vmdk \
 		$(BIN_DIR)/$(IMG_PREFIX)-uefi-gpt-$(1).img \
 		$(BIN_DIR)/$(IMG_PREFIX)-uefi-gpt-$(1).vmdk
-endef
+  endef
 endif
 
 define Image/Build/gzip
@@ -259,7 +265,7 @@ endef
 
 define Image/Build
 	$(call Image/Build/$(1))
-ifneq ($(1),iso)
+  ifneq ($(1),iso)
 	$(call Image/Build/grub2,$(1))
 	$(call Image/Build/efi,$(1))
 ifneq ($(CONFIG_GRUB_IMAGES),)
@@ -271,9 +277,9 @@ ifneq ($(CONFIG_EFI_IMAGES),)
 	$(call Image/Build/vmdk_efi,$(1))
 endif
 	$(CP) $(KDIR)/root.$(1) $(BIN_DIR)/$(IMG_PREFIX)-rootfs-$(1).img
-else
+  else
 	$(CP) $(KDIR)/root.iso $(BIN_DIR)/$(IMG_PREFIX).iso
-endif
+  endif
 	$(CP) $(KDIR)/bzImage $(BIN_DIR)/$(IMG_PREFIX)-vmlinuz
 	$(call Image/Build/gzip/$(1))
 ifeq ($(CONFIG_TARGET_ROOTFS_INITRAMFS),y)
