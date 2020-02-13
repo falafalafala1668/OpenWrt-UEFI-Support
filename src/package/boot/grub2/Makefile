@@ -8,7 +8,6 @@
 include $(TOPDIR)/rules.mk
 include $(INCLUDE_DIR)/kernel.mk
 
-PKG_NAME:=grub
 PKG_CPE_ID:=cpe:/a:gnu:grub2
 PKG_VERSION:=2.02
 PKG_RELEASE:=3
@@ -17,9 +16,8 @@ PKG_SOURCE:=grub-$(PKG_VERSION).tar.xz
 PKG_SOURCE_URL:=@GNU/grub
 PKG_HASH:=810b3798d316394f94096ec2797909dbf23c858e48f7b3830826b8daa06b7b0f
 
-#PKG_FIXUP:=autoreconf
+PKG_FIXUP:=autoreconf
 HOST_BUILD_PARALLEL:=1
-PKG_BUILD_DEPENDS:=grub2/host
 
 PKG_SSP:=0
 
@@ -38,19 +36,6 @@ define Package/grub2/Default
   TITLE:=GRand Unified Bootloader
   URL:=http://www.gnu.org/software/grub/
   DEPENDS:=@TARGET_x86
-endef
-
-define Package/grub2-editenv
-  CATEGORY:=Utilities
-  SECTION:=utils
-  SUBMENU:=Boot Loaders
-  TITLE:=Grub2 Environment editor
-  URL:=http://www.gnu.org/software/grub/
-  DEPENDS:=@TARGET_x86
-endef
-
-define Package/grub2-editenv/description
-	Edit grub2 environment files.
 endef
 
 HOST_BUILD_PREFIX := $(STAGING_DIR_HOST)

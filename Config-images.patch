@@ -1,5 +1,5 @@
 --- config/Config-images.in	2020-02-12 22:22:37.215089581 +0800
-+++ OpenWrt-UEFI-Support/src/config/Config-images.in	2020-02-12 18:27:33.642392138 +0800
++++ OpenWrt-UEFI-Support/src/config/Config-images.in	2020-02-13 17:40:38.982414697 +0800
 @@ -195,19 +195,26 @@
  		select PACKAGE_grub2
  		default y
@@ -54,18 +54,21 @@
  		default "OpenWrt"
  		help
  		  This is the title of the GRUB menu entry.
-@@ -241,23 +248,17 @@
+@@ -240,24 +247,18 @@
+ 	config VDI_IMAGES
  		bool "Build VirtualBox image files (VDI)"
  		depends on TARGET_x86
- 		select GRUB_IMAGES
+-		select GRUB_IMAGES
 -		select TARGET_IMAGES_PAD
++		select EFI_IMAGES
  		select PACKAGE_kmod-e1000
  
  	config VMDK_IMAGES
  		bool "Build VMware image files (VMDK)"
  		depends on TARGET_x86
- 		select GRUB_IMAGES
+-		select GRUB_IMAGES
 -		select TARGET_IMAGES_PAD
++		select EFI_IMAGES
  		select PACKAGE_kmod-e1000
  
 -	config TARGET_IMAGES_PAD

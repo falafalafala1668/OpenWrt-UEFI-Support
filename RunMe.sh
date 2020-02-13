@@ -29,6 +29,7 @@ case "$1" in
   patch -p0 < OpenWrt-UEFI-Support/Image.patch
   patch -p0 < OpenWrt-UEFI-Support/tools.patch
   patch -p0 < OpenWrt-UEFI-Support/Grub-Makefile.patch
+  mv package/boot/grub2/patches/400-R_X86_64_PLT32.patch package/boot/grub2/patches/400-R_X86_64_PLT32.patch.bak
   cp -r OpenWrt-UEFI-Support/src/package/boot/grub2/grub2-efi package/boot/grub2/
   cp -r OpenWrt-UEFI-Support/src/package/boot/grub2/grub2 package/boot/grub2/
   cp -r OpenWrt-UEFI-Support/src/target/linux/x86/image/gen_image_efi.sh target/linux/x86/image/
@@ -37,6 +38,7 @@ case "$1" in
   ;;
   "restore")
   restore_patch
+  mv package/boot/grub2/patches/400-R_X86_64_PLT32.patch.bak package/boot/grub2/patches/400-R_X86_64_PLT32.patch
   rm -rf package/boot/grub2/grub2-efi package/boot/grub2/grub2
   rm -rf tools/gptfdisk tools/popt
   rm -rf target/linux/x86/image/gen_image_efi.sh

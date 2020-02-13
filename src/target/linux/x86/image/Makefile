@@ -201,6 +201,8 @@ ifneq ($(CONFIG_VDI_IMAGES),)
 	qemu-img convert -f raw -O vdi \
 		$(BIN_DIR)/$(IMG_PREFIX)-combined-$(1).img \
 		$(BIN_DIR)/$(IMG_PREFIX)-combined-$(1).vdi
+		# XXX: VBoxManage insists on setting perms to 0600
+		chmod 0644 $(BIN_DIR)/$(IMG_PREFIX)-combined-$(1).vdi
   endef
   define Image/Build/vdi_efi
 	rm $(BIN_DIR)/$(IMG_PREFIX)-uefi-gpt-$(1).vdi || true
