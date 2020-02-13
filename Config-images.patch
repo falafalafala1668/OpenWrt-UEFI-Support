@@ -1,16 +1,18 @@
 --- config/Config-images.in	2020-02-12 14:30:07.413413408 +0800
-+++ OpenWrt-UEFI-Support/src/config/Config-images.in	2020-02-13 16:00:02.762340325 +0800
-@@ -193,21 +193,28 @@
++++ OpenWrt-UEFI-Support/src/config/Config-images.in	2020-02-13 22:49:14.140513992 +0800
+@@ -191,23 +191,30 @@
+ 		depends on TARGET_x86
+ 		depends on TARGET_ROOTFS_EXT4FS || TARGET_ROOTFS_ISO || TARGET_ROOTFS_JFFS2 || TARGET_ROOTFS_SQUASHFS
  		select PACKAGE_grub2
- 		default y
- 
++		default n
++
 +	config EFI_IMAGES
 +		bool "Build EFI GRUB images (Linux x86 or x86_64 host only)"
 +		depends on TARGET_x86
 +		depends on TARGET_ROOTFS_EXT4FS || TARGET_ROOTFS_ISO || TARGET_ROOTFS_JFFS2 || TARGET_ROOTFS_SQUASHFS
 +		select PACKAGE_grub2-efi
-+		default y
-+
+ 		default y
+ 
  	config GRUB_CONSOLE
  		bool "Use Console Terminal (in addition to Serial)"
 -		depends on GRUB_IMAGES
@@ -32,7 +34,7 @@
  		default 38400 if TARGET_x86_generic
  		default 115200
  
-@@ -218,18 +225,26 @@
+@@ -218,29 +225,37 @@
  
  	config GRUB_BOOTOPTS
  		string "Extra kernel boot options"
@@ -61,6 +63,19 @@
  	config VDI_IMAGES
  		bool "Build VirtualBox image files (VDI)"
  		depends on TARGET_x86 || TARGET_x86_64
+-		select GRUB_IMAGES
++		select EFI_IMAGES
+ 		select TARGET_IMAGES_PAD
+ 		select PACKAGE_kmod-e1000
+ 
+ 	config VMDK_IMAGES
+ 		bool "Build VMware image files (VMDK)"
+ 		depends on TARGET_x86 || TARGET_x86_64
+-		select GRUB_IMAGES
++		select EFI_IMAGES
+ 		select TARGET_IMAGES_PAD
+ 		select PACKAGE_kmod-e1000
+ 
 @@ -259,19 +274,19 @@
  
  	config TARGET_KERNEL_PARTSIZE

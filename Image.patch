@@ -1,12 +1,12 @@
 --- target/linux/x86/image/Makefile	2020-02-12 14:30:07.000000000 +0800
-+++ OpenWrt-UEFI-Support/src/target/linux/x86/image/Makefile	2020-02-13 16:17:52.598850982 +0800
++++ OpenWrt-UEFI-Support/src/target/linux/x86/image/Makefile	2020-02-13 22:53:32.712109125 +0800
 @@ -1,4 +1,4 @@
 -# 
 +#
  # Copyright (C) 2006-2012 OpenWrt.org
  #
  # This is free software, licensed under the GNU General Public License v2.
-@@ -10,12 +10,14 @@
+@@ -10,6 +10,9 @@
  export PATH=$(TARGET_PATH):/sbin
  
  GRUB2_MODULES = biosdisk boot chain configfile ext2 linux ls part_msdos reboot serial vga
@@ -16,13 +16,7 @@
  GRUB2_MODULES_ISO = biosdisk boot chain configfile iso9660 linux ls part_msdos reboot serial vga
  GRUB_TERMINALS =
  GRUB_SERIAL_CONFIG =
- GRUB_TERMINAL_CONFIG =
- GRUB_CONSOLE_CMDLINE =
--GRUB_ROOT = hd0,msdos1
- 
- USE_ATKBD = generic 64
- 
-@@ -42,6 +44,7 @@
+@@ -42,6 +45,7 @@
  endif
  
  SIGNATURE:=$(shell perl -e 'printf("%08x", rand(0xFFFFFFFF))')
@@ -30,7 +24,7 @@
  ROOTPART:=$(call qstrip,$(CONFIG_TARGET_ROOTFS_PARTNAME))
  ROOTPART:=$(if $(ROOTPART),$(ROOTPART),PARTUUID=$(SIGNATURE)-02)
  
-@@ -51,7 +54,7 @@
+@@ -51,7 +55,7 @@
    GRUB_ROOT = xen/xvda,msdos1
  endif
  
@@ -39,7 +33,7 @@
  
    BOOTOPTS:=$(call qstrip,$(CONFIG_GRUB_BOOTOPTS))
  
-@@ -63,6 +66,72 @@
+@@ -63,6 +67,77 @@
      root=$(ROOTPART) rootfstype=squashfs rootwait
    endef
  
@@ -105,6 +99,11 @@
 +	sgdisk -g "$(BIN_DIR)/$(IMG_PREFIX)-uefi-gpt-$(1).img"
 +	sgdisk -t 1:EF00 "$(BIN_DIR)/$(IMG_PREFIX)-uefi-gpt-$(1).img"
 +	sgdisk -u 2:$(EFI_SIGNATURE) "$(BIN_DIR)/$(IMG_PREFIX)-uefi-gpt-$(1).img"
++
++	echo -e -n "\x16\xfa\xaf\x61" > magic
++	dd if=magic of=$(BIN_DIR)/$(IMG_PREFIX)-uefi-gpt-$(1).img bs=4 conv=notrunc
++	rm magic
++
 +  endef
 +  endif
 +
@@ -112,7 +111,7 @@
    define Image/Build/grub2
  	# left here because the image builder doesnt need these
  	$(INSTALL_DIR) $(KDIR)/root.grub/boot/grub $(KDIR)/grub2
-@@ -95,6 +164,8 @@
+@@ -95,6 +170,8 @@
  		-r "hd0,msdos1" \
  		"$(BIN_DIR)/$(IMG_PREFIX)-combined-$(1).img"
    endef
@@ -121,7 +120,7 @@
  endif
  
  define Image/Build/squashfs
-@@ -120,6 +191,7 @@
+@@ -120,6 +197,7 @@
  		-e 's#@TERMINAL_CONFIG@#$(strip $(GRUB_TERMINAL_CONFIG))#g' \
  		-e 's#@CMDLINE@#root=/dev/sr0 rootfstype=iso9660 rootwait $(strip $(call Image/cmdline/$(1)) $(BOOTOPTS) $(GRUB_CONSOLE_CMDLINE))#g' \
  		-e 's#@TIMEOUT@#$(GRUB_TIMEOUT)#g' \
@@ -129,7 +128,7 @@
  		./grub-iso.cfg > $(KDIR)/root.grub/boot/grub/grub.cfg
  	-$(CP) $(STAGING_DIR_ROOT)/boot/. $(KDIR)/root.grub/boot/
  	mkisofs -R -b boot/grub/eltorito.img -no-emul-boot -boot-info-table \
-@@ -132,8 +204,16 @@
+@@ -132,8 +210,16 @@
  	qemu-img convert -f raw -O vdi \
  		$(BIN_DIR)/$(IMG_PREFIX)-combined-$(1).img \
  		$(BIN_DIR)/$(IMG_PREFIX)-combined-$(1).vdi
@@ -147,7 +146,7 @@
    endef
  endif
  
-@@ -144,20 +224,31 @@
+@@ -144,20 +230,31 @@
  		$(BIN_DIR)/$(IMG_PREFIX)-combined-$(1).img \
  		$(BIN_DIR)/$(IMG_PREFIX)-combined-$(1).vmdk
    endef
@@ -184,7 +183,7 @@
  endif
  
  define Image/BuildKernel
-@@ -176,8 +267,15 @@
+@@ -176,8 +273,15 @@
  	$(call Image/Build/$(1))
    ifneq ($(1),iso)
  	$(call Image/Build/grub2,$(1))
