@@ -1,0 +1,25 @@
+--- target/linux/x86/base-files/lib/upgrade/platform.sh	2020-02-13 20:22:26.109750110 +0800
++++ OpenWrt-UEFI-Support/src/target/linux/x86/base-files/lib/upgrade/platform.sh	2020-02-13 21:36:52.144500780 +0800
+@@ -3,17 +3,17 @@
+ 	[ "$#" -gt 1 ] && return 1
+ 
+ 	case "$(get_magic_word "$1")" in
+-		eb48|eb63) ;;
++		eb48|eb63|16fa) ;;
+ 		*)
+ 			echo "Invalid image type"
+ 			return 1
+ 		;;
+ 	esac
+ 
+-	export_bootdevice && export_partdevice diskdev 0 || {
+-		echo "Unable to determine upgrade device"
+-		return 1
+-	}
++	# export_bootdevice && export_partdevice diskdev 0 || {
++	# 	echo "Unable to determine upgrade device"
++	# 	return 1
++	# }
+ 
+ 	get_partitions "/dev/$diskdev" bootdisk
+ 

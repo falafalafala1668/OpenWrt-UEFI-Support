@@ -1,7 +1,7 @@
-# OpenWrt UEFI Support
+# OpenWrt UEFI Support (19.07 Branch)
 Since OpenWrt Project has not yet accepted any UEFI-Boot approach, extract based on the original jow.git and modify it to be compatible with the current version.
 
-Tested in Openwrt 19.07 source branch.
+Tested in Openwrt Master & 19.07 source branches.
 
 ![](https://github.com/falafalafala1668/OpenWrt-UEFI-Support/blob/master/src/Screenshots/2.png)
 
@@ -37,6 +37,25 @@ Go to **Target Images** and make sure that **Build EFI grub images** option is c
 
 ![](https://github.com/falafalafala1668/OpenWrt-UEFI-Support/blob/master/src/Screenshots/1.png)
 
+**Update**
+
+Before update, Please ensure that the following files have not been modified.
+```
+config/Config-images.in
+package/base-files/files/lib/upgrade/common.sh
+package/base-files/files/sbin/sysupgrade
+package/boot/grub2/Makefile
+tools/Makefile
+target/linux/x86/base-files/lib/upgrade/platform.sh
+target/linux/x86/image/Makefile
+```
+
+then enter:
+
+```
+./OpenWrt-UEFI-Support/RunMe.sh update
+```
+
 **Restore**
 
 ```
@@ -44,25 +63,26 @@ Go to **Target Images** and make sure that **Build EFI grub images** option is c
 ```
 
 # Advanced Settings
-If you OpenWrt isn't official sources, you can generate patches by yourself.
+If you OpenWrt isn't official sources, or you have been modified these files.You can generate patches by yourself.
+
+```
+config/Config-images.in
+package/base-files/files/lib/upgrade/common.sh
+package/base-files/files/sbin/sysupgrade
+package/boot/grub2/Makefile
+tools/Makefile
+target/linux/x86/base-files/lib/upgrade/platform.sh
+target/linux/x86/image/Makefile
+```
+
+then enter:
+
 ```
 ./OpenWrt-UEFI-Support/RunMe.sh generate
 ```
 then apply the patches
 ```
 ./OpenWrt-UEFI-Support/RunMe.sh apply
-```
-
-# Known issues
-
-Using `sysupgrade` and `luci` upgrade new UEFI Image will show error or damaged,Because I have removed hybrid boot support to avoid some partition table issues.
-
-**Temporary Solution:**
-
-IMPORTANT: It will make your system corrupt,Please check your image before upgrade!!!
-```
-sysupgrade with "-F" parameter
-luci use Force Update
 ```
 
 # Thanks

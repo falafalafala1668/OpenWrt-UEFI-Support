@@ -125,23 +125,24 @@ export_bootdevice() {
 		esac
 
 		case "$rootpart" in
-			PARTUUID=[A-F0-9][A-F0-9][A-F0-9][A-F0-9][A-F0-9][A-F0-9][A-F0-9][A-F0-9]-[A-F0-9][A-F0-9][A-F0-9][A-F0-9]-[A-F0-9][A-F0-9][A-F0-9][A-F0-9]-[A-F0-9][A-F0-9][A-F0-9][A-F0-9]-[A-F0-9][A-F0-9][A-F0-9][A-F0-9][A-F0-9][A-F0-9][A-F0-9][A-F0-9]0002)
-				uuid="${rootpart#PARTUUID=}"
-				uuid="${uuid%0002}0002"
-				for blockdev in $(find /dev -type b); do
-					set -- $(dd if=$blockdev bs=1 skip=$((2*512+256+128+16)) count=16 2>/dev/null | hexdump -v -e '4/1 "%02x"' | awk '{ \
-							for(i=1;i<9;i=i+2) first=substr($0,i,1) substr($0,i+1,1) first; \
-							for(i=9;i<13;i=i+2) second=substr($0,i,1) substr($0,i+1,1) second; \
-							for(i=13;i<16;i=i+2) third=substr($0,i,1) substr($0,i+1,1) third; \
-							fourth = substr($0,17,4); \
-							five = substr($0,21,12); \
-						} END { print toupper(first"-"second"-"third"-"fourth"-"five) }')
-					if [ "$1" = "$uuid" ]; then
-						uevent="/sys/class/block/${blockdev##*/}/uevent"
-						export SAVE_PARTITIONS=0
-						break
-					fi
-				done
+			PARTUUID=[A-F0-9][A-F0-9][A-F0-9][A-F0-9][A-F0-9][A-F0-9][A-F0-9][A-F0-9]-[A-F0-9][A-F0-9][A-F0-9][A-F0-9]-[A-F0-9][A-F0-9][A-F0-9][A-F0-9]-[A-F0-9][A-F0-9][A-F0-9][A-F0-9]-[A-F0-9][A-F0-9][A-F0-9][A-F0-9][A-F0-9][A-F0-9][A-F0-9][A-F0-9][A-F0-9][A-F0-9][A-F0-9][A-F0-9])
+				uuid="${disk#PARTUUID=}"
+				uuid="${uuid}"
+				export BOOTPART=$(blkid | grep "PARTUUID=" | {
+					local pdisk puuid
+					while read -r line
+					do
+					        pdisk=${line%%:*}
+					        puuid=${line##*PARTUUID=\"}
+					        puuid=${puuid%%\"*}
+						puuid=$(echo "$puuid" | tr '[a-z]' '[A-Z]')
+						if [ "$uuid" = "$puuid" ]; then
+							echo -n "${pdisk%[0-9]}1"
+							return 0
+						fi
+					done
+				})
+				return 0
 			;;
 			PARTUUID=[a-f0-9][a-f0-9][a-f0-9][a-f0-9][a-f0-9][a-f0-9][a-f0-9][a-f0-9]-[a-f0-9][a-f0-9])
 				uuid="${rootpart#PARTUUID=}"
@@ -155,51 +156,31 @@ export_bootdevice() {
 				done
 			;;
 			/dev/*)
-				uevent="/sys/class/block/${rootpart##*/}/../uevent"
-			;;
-			0x[a-f0-9][a-f0-9][a-f0-9] | 0x[a-f0-9][a-f0-9][a-f0-9][a-f0-9] | \
-			[a-f0-9][a-f0-9][a-f0-9] | [a-f0-9][a-f0-9][a-f0-9][a-f0-9])
-				rootpart=0x${rootpart#0x}
-				for class in /sys/class/block/*; do
-					while read line; do
-						export -n "$line"
-					done < "$class/uevent"
-					if [ $((rootpart/256)) = $MAJOR -a $((rootpart%256)) = $MINOR ]; then
-						uevent="$class/../uevent"
-					fi
-				done
+				export BOOTPART="${disk%[0-9]}1"
+				return 0
 			;;
 		esac
-
-		if [ -e "$uevent" ]; then
-			while read line; do
-				export -n "$line"
-			done < "$uevent"
-			export BOOTDEV_MAJOR=$MAJOR
-			export BOOTDEV_MINOR=$MINOR
-			return 0
-		fi
 	fi
 
 	return 1
 }
 
-export_partdevice() {
-	local var="$1" offset="$2"
-	local uevent line MAJOR MINOR DEVNAME DEVTYPE
-
-	for uevent in /sys/class/block/*/uevent; do
-		while read line; do
-			export -n "$line"
-		done < "$uevent"
-		if [ $BOOTDEV_MAJOR = $MAJOR -a $(($BOOTDEV_MINOR + $offset)) = $MINOR -a -b "/dev/$DEVNAME" ]; then
-			export "$var=$DEVNAME"
-			return 0
-		fi
-	done
-
-	return 1
-}
+# export_partdevice() {
+# 	local var="$1" offset="$2"
+# 	local uevent line MAJOR MINOR DEVNAME DEVTYPE
+#
+# 	for uevent in /sys/class/block/*/uevent; do
+# 		while read line; do
+# 			export -n "$line"
+# 		done < "$uevent"
+# 		if [ $BOOTDEV_MAJOR = $MAJOR -a $(($BOOTDEV_MINOR + $offset)) = $MINOR -a -b "/dev/$DEVNAME" ]; then
+# 			export "$var=$DEVNAME"
+# 			return 0
+# 		fi
+# 	done
+#
+# 	return 1
+# }
 
 hex_le32_to_cpu() {
 	[ "$(echo 01 | hexdump -v -n 2 -e '/2 "%x"')" = "3031" ] && {

@@ -125,6 +125,11 @@ ifneq ($(CONFIG_GRUB_IMAGES)$(CONFIG_EFI_IMAGES),)
 	sgdisk -g "$(BIN_DIR)/$(IMG_PREFIX)-uefi-gpt-$(1).img"
 	sgdisk -t 1:EF00 "$(BIN_DIR)/$(IMG_PREFIX)-uefi-gpt-$(1).img"
 	sgdisk -u 2:$(EFI_SIGNATURE) "$(BIN_DIR)/$(IMG_PREFIX)-uefi-gpt-$(1).img"
+
+	echo -e -n "\x16\xfa\xaf\x61" > magic
+	dd if=magic of=$(BIN_DIR)/$(IMG_PREFIX)-uefi-gpt-$(1).img bs=4 conv=notrunc
+	rm magic
+
   endef
   endif
 

@@ -1,5 +1,5 @@
 --- target/linux/x86/image/Makefile	2020-02-12 22:22:37.000000000 +0800
-+++ OpenWrt-UEFI-Support/src/target/linux/x86/image/Makefile	2020-02-13 16:17:51.000000000 +0800
++++ OpenWrt-UEFI-Support/src/target/linux/x86/image/Makefile	2020-02-13 22:37:23.469537297 +0800
 @@ -1,4 +1,4 @@
 -# 
 +#
@@ -32,7 +32,7 @@
  
    BOOTOPTS:=$(call qstrip,$(CONFIG_GRUB_BOOTOPTS))
  
-@@ -59,6 +63,72 @@
+@@ -59,6 +63,77 @@
      root=$(ROOTPART) rootfstype=squashfs rootwait
    endef
  
@@ -98,6 +98,11 @@
 +	sgdisk -g "$(BIN_DIR)/$(IMG_PREFIX)-uefi-gpt-$(1).img"
 +	sgdisk -t 1:EF00 "$(BIN_DIR)/$(IMG_PREFIX)-uefi-gpt-$(1).img"
 +	sgdisk -u 2:$(EFI_SIGNATURE) "$(BIN_DIR)/$(IMG_PREFIX)-uefi-gpt-$(1).img"
++
++	echo -e -n "\x16\xfa\xaf\x61" > magic
++	dd if=magic of=$(BIN_DIR)/$(IMG_PREFIX)-uefi-gpt-$(1).img bs=4 conv=notrunc
++	rm magic
++
 +  endef
 +  endif
 +
@@ -105,7 +110,7 @@
    define Image/Build/grub2
  	# left here because the image builder doesnt need these
  	$(INSTALL_DIR) $(KDIR)/root.grub/boot/grub $(KDIR)/grub2
-@@ -91,6 +161,8 @@
+@@ -91,6 +166,8 @@
  		-r "hd0,msdos1" \
  		"$(BIN_DIR)/$(IMG_PREFIX)-combined-$(1).img"
    endef
@@ -114,7 +119,7 @@
  endif
  
  define Image/Build/squashfs
-@@ -129,6 +201,16 @@
+@@ -129,6 +206,16 @@
  	qemu-img convert -f raw -O vdi \
  		$(BIN_DIR)/$(IMG_PREFIX)-combined-$(1).img \
  		$(BIN_DIR)/$(IMG_PREFIX)-combined-$(1).vdi
@@ -131,7 +136,7 @@
    endef
  endif
  
-@@ -139,20 +221,31 @@
+@@ -139,20 +226,31 @@
  		$(BIN_DIR)/$(IMG_PREFIX)-combined-$(1).img \
  		$(BIN_DIR)/$(IMG_PREFIX)-combined-$(1).vmdk
    endef
@@ -168,7 +173,7 @@
  endif
  
  define Image/BuildKernel
-@@ -171,8 +264,15 @@
+@@ -171,8 +269,15 @@
  	$(call Image/Build/$(1))
    ifneq ($(1),iso)
  	$(call Image/Build/grub2,$(1))
