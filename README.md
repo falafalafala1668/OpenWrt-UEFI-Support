@@ -57,13 +57,7 @@ then apply the patches
 
 Using `sysupgrade` and `luci` upgrade new UEFI Image will show error or damaged,Because I have removed hybrid boot support to avoid some partition table issues.
 
-**Temporary Solution:**
-
-IMPORTANT: It will make your system corrupt,Please check your image before upgrade!!!
-```
-sysupgrade with "-F" parameter
-luci use Force Update
-```
+And new sysupgrade function unsupported the new partition table. 
 
 # Thanks
 [OpenWrt Project](https://github.com/openwrt/openwrt.git)
