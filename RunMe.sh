@@ -28,11 +28,10 @@ apply_patch() {
       patch -p0 < $(currentdir)/Grub-Makefile.patch
 
       echo "Copying necessary files..."
-      cp -r $(currentdir)/src/package/boot/grub2/*
     #  cp -r $(currentdir)/src/package/libs/gnu-efi package/libs/
     #  cp -r $(currentdir)/src/package/utils/sbsigntool package/utils/
     #  cp -r $(currentdir)/src/package/utils/efi* package/utils/
-      cp -r $(currentdir)/src/package/boot/grub2/grub2 package/boot/grub2/
+      cp -r $(currentdir)/src/package/boot/grub2/grub2 $(currentdir)/src/package/boot/grub2/grub2-efi package/boot/grub2/
       cp -r $(currentdir)/src/target/linux/x86/image/gen_image_efi.sh target/linux/x86/image/
       cp -r $(currentdir)/src/tools/gptfdisk tools/
       cp -r $(currentdir)/src/tools/popt tools
