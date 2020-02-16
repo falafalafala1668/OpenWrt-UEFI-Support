@@ -43,7 +43,6 @@ Before update, Please ensure that the following files have not been modified.
 ```
 config/Config-images.in
 package/base-files/files/lib/upgrade/common.sh
-package/base-files/files/lib/preinit/80_mount_root
 package/boot/grub2/Makefile
 tools/Makefile
 target/linux/x86/base-files/lib/upgrade/platform.sh
@@ -68,7 +67,6 @@ If you OpenWrt isn't official sources, or you have been modified these files.You
 ```
 config/Config-images.in
 package/base-files/files/lib/upgrade/common.sh
-package/base-files/files/lib/preinit/80_mount_root
 package/boot/grub2/Makefile
 tools/Makefile
 target/linux/x86/base-files/lib/upgrade/platform.sh
