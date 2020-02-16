@@ -1,5 +1,5 @@
 --- package/base-files/files/lib/upgrade/common.sh	2020-02-14 23:06:11.000000000 +0800
-+++ OpenWrt-UEFI-Support/src/package/base-files/files/lib/upgrade/common.sh	2020-02-16 16:46:45.779728474 +0800
++++ OpenWrt-UEFI-Support/src/package/base-files/files/lib/upgrade/common.sh	2020-02-16 16:46:45.000000000 +0800
 @@ -1,4 +1,4 @@
 -#!/bin/sh
 +#!/bin/sh -x

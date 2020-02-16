@@ -1,5 +1,5 @@
 --- tools/Makefile	2020-02-14 21:37:23.854766413 +0800
-+++ OpenWrt-UEFI-Support/src/tools/Makefile	2020-02-12 15:45:33.247482863 +0800
++++ OpenWrt-UEFI-Support/src/tools/Makefile	2020-02-12 15:45:33.000000000 +0800
 @@ -29,6 +29,7 @@
  tools-y += mtools dosfstools libressl
  tools-$(CONFIG_TARGET_orion_generic) += wrt350nv2-builder upslug2

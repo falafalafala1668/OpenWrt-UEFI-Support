@@ -4,7 +4,6 @@ restore_patch() {
       echo "###### Restoring Patches ######"
       patch -REp0 < $(currentdir)/Config-images.patch
       patch -REp0 < $(currentdir)/common.patch
-      patch -REp0 < $(currentdir)/80_mount_root.patch
       patch -REp0 < $(currentdir)/Image.patch
       patch -REp0 < $(currentdir)/tools.patch
       patch -REp0 < $(currentdir)/Grub-Makefile.patch
@@ -24,7 +23,6 @@ apply_patch() {
       echo "###### Applying patches ######"
       patch -p0 < $(currentdir)/Config-images.patch
       patch -p0 < $(currentdir)/common.patch
-      patch -p0 < $(currentdir)/80_mount_root.patch
       patch -p0 < $(currentdir)/Image.patch
       patch -p0 < $(currentdir)/tools.patch
       patch -p0 < $(currentdir)/Grub-Makefile.patch
@@ -59,7 +57,6 @@ generate_patch() {
   git pull
   diff -Naur config/Config-images.in $(currentdir)/src/config/Config-images.in > $(currentdir)/Config-images.patch
   diff -Naur package/base-files/files/lib/upgrade/common.sh $(currentdir)/src/package/base-files/files/lib/upgrade/common.sh > $(currentdir)/common.patch
-  diff -Naur package/base-files/files/lib/preinit/80_mount_root $(currentdir)/src/package/base-files/files/lib/preinit/80_mount_root > $(currentdir)/80_mount_root.patch
   diff -Naur package/boot/grub2/Makefile $(currentdir)/src/package/boot/grub2/Makefile > $(currentdir)/Grub-Makefile.patch
   diff -Naur tools/Makefile $(currentdir)/src/tools/Makefile > $(currentdir)/tools.patch
   diff -Naur target/linux/x86/image/Makefile $(currentdir)/src/target/linux/x86/image/Makefile > $(currentdir)/Image.patch

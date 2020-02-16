@@ -91,7 +91,7 @@ ifneq ($(CONFIG_GRUB_IMAGES)$(CONFIG_EFI_IMAGES),)
 	rm -rf $(KDIR)/grub2.efi/ || true
 	$(INSTALL_DIR) $(KDIR)/grub2.efi/efi/boot/
 
-	# Generate the grub search root config (grub will search for the $(IMG_PART_SIGNATURE).cfg file placed on the boot partition as grub does not support search of GPT UUID yet)
+	# Generate the grub search root config (grub will search for the $(EFI_SIGNATURE).cfg file placed on the boot partition as grub does not support search of GPT UUID yet)
 	echo "search --file /boot/grub/$(EFI_SIGNATURE).cfg --set=root" > $(KDIR)/grub2.efi/efi/boot/grub.cfg
 	echo "configfile /boot/grub/grub.cfg" >> $(KDIR)/grub2.efi/efi/boot/grub.cfg
 
