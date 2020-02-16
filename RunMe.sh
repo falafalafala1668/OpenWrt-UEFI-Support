@@ -84,8 +84,8 @@ case "$1" in
   generate_patch
   ;;
   "update")
-  update
   restore_patch
+  update
   apply_patch
   ;;
   *)
