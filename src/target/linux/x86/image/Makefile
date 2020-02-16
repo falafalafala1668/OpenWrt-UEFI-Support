@@ -10,8 +10,7 @@ include $(INCLUDE_DIR)/image.mk
 export PATH=$(TARGET_PATH):/sbin
 
 GRUB2_MODULES = biosdisk boot chain configfile ext2 linux ls part_msdos reboot serial vga
-GRUB2_MODULES_LEGACY = $(GRUB2_MODULES)
-GRUB2_MODULES_LEGACY += part_gpt search fat exfat
+
 GRUB2_MODULES_EFI = boot chain configfile ext2 linux ls part_msdos reboot serial part_gpt part_msdos search fat exfat ext2 efi_gop efi_uga gfxterm
 GRUB2_MODULES_ISO = biosdisk boot chain configfile iso9660 linux ls part_msdos reboot serial vga
 GRUB_TERMINALS =
@@ -92,14 +91,14 @@ ifneq ($(CONFIG_GRUB_IMAGES)$(CONFIG_EFI_IMAGES),)
 		-e 's/(hd0,msdos1)/(hd0,gpt1)/' ./grub-early.cfg > \
 			$(KDIR)/root.grub/boot/grub/grub-early.cfg
 
-	$(CP) $(KDIR)/root.grub/boot/grub/grub.cfg $(KDIR)/root.grub/boot/grub/$(SIGNATURE).cfg
+	$(CP) $(KDIR)/root.grub/boot/grub/grub.cfg $(KDIR)/root.grub/boot/grub/$(EFI_SIGNATURE).cfg
 
 	# Build the efi grub version
 	rm -rf $(KDIR)/grub2.efi/ || true
 	$(INSTALL_DIR) $(KDIR)/grub2.efi/efi/boot/
 
-	# Generate the grub search root config (grub will search for the $(SIGNATURE).cfg file placed on the boot partition as grub does not support search of GPT UUID yet)
-	echo "search --file /boot/grub/$(SIGNATURE).cfg --set=root" > $(KDIR)/grub2.efi/efi/boot/grub.cfg
+	# Generate the grub search root config (grub will search for the $(EFI_SIGNATURE).cfg file placed on the boot partition as grub does not support search of GPT UUID yet)
+	echo "search --file /boot/grub/$(EFI_SIGNATURE).cfg --set=root" > $(KDIR)/grub2.efi/efi/boot/grub.cfg
 	echo "configfile /boot/grub/grub.cfg" >> $(KDIR)/grub2.efi/efi/boot/grub.cfg
 
 	# Create the EFI grub binary
@@ -113,26 +112,23 @@ ifneq ($(CONFIG_GRUB_IMAGES)$(CONFIG_EFI_IMAGES),)
 
 	# Generate the EFI VFAT bootfs
 	rm $(KDIR)/kernel.efi || true
-	dd if=/dev/zero of=$(KDIR)/kernel.efi bs=1M count=$(CONFIG_TARGET_KERNEL_PARTSIZE)
-	mkfs.fat $(KDIR)/kernel.efi -S 512
-	$(CP) $(KDIR)/root.grub/* $(KDIR)/grub2.efi/
+	mkfs.fat -C $(KDIR)/kernel.efi -S 512 1024
 	mcopy -s -i "$(KDIR)/kernel.efi" $(KDIR)/grub2.efi/* ::/
 
-	SIGNATURE="$(SIGNATURE)" PATH="$(TARGET_PATH)" ./gen_image_efi.sh \
+	SIGNATURE="$(EFI_SIGNATURE)" PATH="$(TARGET_PATH)" ./gen_image_efi.sh \
 		$(BIN_DIR)/$(IMG_PREFIX)-uefi-gpt-$(1).img \
-		$(CONFIG_TARGET_KERNEL_PARTSIZE) $(KDIR)/kernel.efi \
+		$(CONFIG_TARGET_KERNEL_PARTSIZE) $(KDIR)/root.grub \
 		$(CONFIG_TARGET_ROOTFS_PARTSIZE) $(KDIR)/root.$(1) \
+		1 $(KDIR)/kernel.efi \
 		256
 
 	# Convert the MBR partition to GPT and set EFI ROOTFS signature
 	dd if=/dev/zero of="$(BIN_DIR)/$(IMG_PREFIX)-uefi-gpt-$(1).img" bs=512 count=33 conv=notrunc oflag=append
 	sgdisk -g "$(BIN_DIR)/$(IMG_PREFIX)-uefi-gpt-$(1).img"
-	sgdisk -t 1:EF00 "$(BIN_DIR)/$(IMG_PREFIX)-uefi-gpt-$(1).img"
+	sgdisk -t 3:EF00 "$(BIN_DIR)/$(IMG_PREFIX)-uefi-gpt-$(1).img"
 	sgdisk -u 2:$(EFI_SIGNATURE) "$(BIN_DIR)/$(IMG_PREFIX)-uefi-gpt-$(1).img"
 
-	echo -e -n "\x16\xfa\xaf\x61" > magic
-	dd if=magic of=$(BIN_DIR)/$(IMG_PREFIX)-uefi-gpt-$(1).img bs=4 conv=notrunc
-	rm magic
+	echo -e -n "\xeb\x63\x99" | dd of="$(BIN_DIR)/$(IMG_PREFIX)-uefi-gpt-$(1).img"  bs=4 conv=notrunc
 
   endef
   endif
@@ -197,7 +193,6 @@ define Image/Build/iso
 		-e 's#@TERMINAL_CONFIG@#$(strip $(GRUB_TERMINAL_CONFIG))#g' \
 		-e 's#@CMDLINE@#root=/dev/sr0 rootfstype=iso9660 rootwait $(strip $(call Image/cmdline/$(1)) $(BOOTOPTS) $(GRUB_CONSOLE_CMDLINE))#g' \
 		-e 's#@TIMEOUT@#$(GRUB_TIMEOUT)#g' \
-		-e 's#@ROOT@#$(GRUB_ROOT)#g' \
 		./grub-iso.cfg > $(KDIR)/root.grub/boot/grub/grub.cfg
 	-$(CP) $(STAGING_DIR_ROOT)/boot/. $(KDIR)/root.grub/boot/
 	mkisofs -R -b boot/grub/eltorito.img -no-emul-boot -boot-info-table \
@@ -210,8 +205,8 @@ ifneq ($(CONFIG_VDI_IMAGES),)
 	qemu-img convert -f raw -O vdi \
 		$(BIN_DIR)/$(IMG_PREFIX)-combined-$(1).img \
 		$(BIN_DIR)/$(IMG_PREFIX)-combined-$(1).vdi
-		# XXX: VBoxManage insists on setting perms to 0600
-		chmod 0644 $(BIN_DIR)/$(IMG_PREFIX)-combined-$(1).vdi
+	# XXX: VBoxManage insists on setting perms to 0600
+	chmod 0644 $(BIN_DIR)/$(IMG_PREFIX)-combined-$(1).vdi
   endef
   define Image/Build/vdi_efi
 	rm $(BIN_DIR)/$(IMG_PREFIX)-uefi-gpt-$(1).vdi || true
@@ -249,12 +244,12 @@ endif
 endef
 
 ifneq ($(CONFIG_TARGET_IMAGES_GZIP),)
-define Image/Build/gzip/ext4
+  define Image/Build/gzip/ext4
 	$(call Image/Build/gzip,ext4)
-endef
-define Image/Build/gzip/squashfs
+  endef
+  define Image/Build/gzip/squashfs
 	$(call Image/Build/gzip,squashfs)
-endef
+  endef
 endif
 
 define Image/BuildKernel

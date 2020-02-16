@@ -1,11 +1,11 @@
-# OpenWrt UEFI Support (18.06 Branch)
+# OpenWrt UEFI Support (18.06 Branch, Unofficial Support)
 Since OpenWrt Project has not yet accepted any UEFI-Boot approach, extract based on the original jow.git and modify it to be compatible with the current version.
+
+These patches are for the convenience of quickly adding UEFI startup support and these are **temporary solutions**. I hope official can support UEFI as soon as possible.
 
 Tested in Openwrt Master & 19.07 source branches.
 
 ![](https://github.com/falafalafala1668/OpenWrt-UEFI-Support/blob/master/src/Screenshots/2.png)
-
-**UEFI Secure Boot Coming Soon.**
 
 # Usage
 Before clone the patches, please check your OpenWrt source branch:
@@ -83,14 +83,12 @@ then apply the patches
 ./OpenWrt-UEFI-Support/RunMe.sh apply
 ```
 
-# Known issues
-
-After apply the patches, build BIOS Images will fail.
-
-# Thanks
+# Acknowledgement
 [OpenWrt Project](https://github.com/openwrt/openwrt.git)
 
 [Jo-Philipp Wich](https://git.openwrt.org/openwrt/staging/jow.git)
+
+[Alif M. Ahmad](https://github.com/alive4ever/openwrt)
 
 # Reference
 [OpenWrt on UEFI based x86 systems](https://openwrt.org/docs/guide-developer/uefi-bootable-image)

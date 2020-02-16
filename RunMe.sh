@@ -1,37 +1,50 @@
 #!/bin/sh
 restore_patch() {
-  echo "###### Restoring Patches ######"
-  patch -REp0 < OpenWrt-UEFI-Support/Config-images.patch
-  patch -REp0 < OpenWrt-UEFI-Support/common.patch
-  patch -REp0 < OpenWrt-UEFI-Support/platform.patch
-  patch -REp0 < OpenWrt-UEFI-Support/Image.patch
-  patch -REp0 < OpenWrt-UEFI-Support/tools.patch
-  patch -REp0 < OpenWrt-UEFI-Support/Grub-Makefile.patch
+    if [ -f .UEFIDone ]; then
+      echo "###### Restoring Patches ######"
+      patch -REp0 < $(currentdir)/Config-images.patch
+      patch -REp0 < $(currentdir)/common.patch
+      patch -REp0 < $(currentdir)/Image.patch
+      patch -REp0 < $(currentdir)/tools.patch
+      patch -REp0 < $(currentdir)/Grub-Makefile.patch
 
-  rm -rf package/boot/grub2/grub2-efi package/boot/grub2/grub2
-  rm -rf tools/gptfdisk tools/popt
-  rm -rf target/linux/x86/image/gen_image_efi.sh
+      rm -rf package/boot/grub2/grub2-efi package/boot/grub2/grub2
+    #  rm -rf package/libs/gnuefi package/utils/efi* package/utils/sbsigntool
+      rm -rf tools/gptfdisk tools/popt
+      rm -rf target/linux/x86/image/gen_image_efi.sh
+      rm -rf .UEFIDone
+    else
+        echo "Already Restored."
+    fi
 }
 
 apply_patch() {
-  echo "###### Applying patches ######"
-  patch -p0 < OpenWrt-UEFI-Support/Config-images.patch
-  patch -p0 < OpenWrt-UEFI-Support/common.patch
-  patch -p0 < OpenWrt-UEFI-Support/platform.patch
-  patch -p0 < OpenWrt-UEFI-Support/Image.patch
-  patch -p0 < OpenWrt-UEFI-Support/tools.patch
-  patch -p0 < OpenWrt-UEFI-Support/Grub-Makefile.patch
+  if [ ! -f .UEFIDone ]; then
+      echo "###### Applying patches ######"
+      patch -p0 < $(currentdir)/Config-images.patch
+      patch -p0 < $(currentdir)/common.patch
+      patch -p0 < $(currentdir)/Image.patch
+      patch -p0 < $(currentdir)/tools.patch
+      patch -p0 < $(currentdir)/Grub-Makefile.patch
 
-  cp -r OpenWrt-UEFI-Support/src/package/boot/grub2/grub2-efi package/boot/grub2/
-  cp -r OpenWrt-UEFI-Support/src/package/boot/grub2/grub2 package/boot/grub2/
-  cp -r OpenWrt-UEFI-Support/src/target/linux/x86/image/gen_image_efi.sh target/linux/x86/image/
-  cp -r OpenWrt-UEFI-Support/src/tools/gptfdisk tools/
-  cp -r OpenWrt-UEFI-Support/src/tools/popt tools/
+      echo "Copying necessary files..."
+    #  cp -r $(currentdir)/src/package/libs/gnu-efi package/libs/
+    #  cp -r $(currentdir)/src/package/utils/sbsigntool package/utils/
+    #  cp -r $(currentdir)/src/package/utils/efi* package/utils/
+      cp -r $(currentdir)/src/package/boot/grub2/grub2 $(currentdir)/src/package/boot/grub2/grub2-efi package/boot/grub2/
+      cp -r $(currentdir)/src/target/linux/x86/image/gen_image_efi.sh target/linux/x86/image/
+      cp -r $(currentdir)/src/tools/gptfdisk tools/
+      cp -r $(currentdir)/src/tools/popt tools
+      touch .UEFIDone
+      echo "Done."
+  else
+      echo "Already Patched."
+  fi
 }
 
 update() {
   echo "###### Updating Patches ######"
-  cd OpenWrt-UEFI-Support
+  cd $(currentdir)
   git pull
   cd ..
 
@@ -39,12 +52,24 @@ update() {
 
 generate_patch() {
   echo "###### Generating Patches ######"
-  diff -Naur config/Config-images.in OpenWrt-UEFI-Support/src/config/Config-images.in > OpenWrt-UEFI-Support/Config-images.patch
-  diff -Naur package/base-files/files/lib/upgrade/common.sh OpenWrt-UEFI-Support/src/package/base-files/files/lib/upgrade/common.sh > OpenWrt-UEFI-Support/common.patch
-  diff -Naur package/boot/grub2/Makefile OpenWrt-UEFI-Support/src/package/boot/grub2/Makefile > OpenWrt-UEFI-Support/Grub-Makefile.patch
-  diff -Naur tools/Makefile OpenWrt-UEFI-Support/src/tools/Makefile > OpenWrt-UEFI-Support/tools.patch
-  diff -Naur target/linux/x86/base-files/lib/upgrade/platform.sh OpenWrt-UEFI-Support/src/target/linux/x86/base-files/lib/upgrade/platform.sh > OpenWrt-UEFI-Support/platform.patch
-  diff -Naur target/linux/x86/image/Makefile OpenWrt-UEFI-Support/src/target/linux/x86/image/Makefile > OpenWrt-UEFI-Support/Image.patch
+  echo "Updating Openwrt source..."
+  git pull
+  diff -Naur config/Config-images.in $(currentdir)/src/config/Config-images.in > $(currentdir)/Config-images.patch
+  diff -Naur package/base-files/files/lib/upgrade/common.sh $(currentdir)/src/package/base-files/files/lib/upgrade/common.sh > $(currentdir)/common.patch
+  diff -Naur package/boot/grub2/Makefile $(currentdir)/src/package/boot/grub2/Makefile > $(currentdir)/Grub-Makefile.patch
+  diff -Naur tools/Makefile $(currentdir)/src/tools/Makefile > $(currentdir)/tools.patch
+  diff -Naur target/linux/x86/image/Makefile $(currentdir)/src/target/linux/x86/image/Makefile > $(currentdir)/Image.patch
+}
+
+currentdir() {
+    SOURCE="$0"
+    while [ -h "$SOURCE"  ]; do # resolve $SOURCE until the file is no longer a symlink
+        DIR="$( cd -P "$( dirname "$SOURCE"  )" && pwd  )"
+        SOURCE="$(readlink "$SOURCE")"
+        [[ $SOURCE != /*  ]] && SOURCE="$DIR/$SOURCE" # if $SOURCE was a relative symlink, we need to resolve it relative to the path where the symlink file was located
+    done
+    DIR="$( cd -P "$( dirname "$SOURCE"  )" && pwd  )"
+    echo ${DIR##*/} 2>/dev/null
 }
 
 case "$1" in
@@ -58,11 +83,11 @@ case "$1" in
   generate_patch
   ;;
   "update")
-  update
   restore_patch
+  update
   apply_patch
   ;;
   *)
-  echo "Please add parameter. Apply or Restore\n e.g: ./OpenWrt-UEFI-Support/RunMe.sh apply"
+  echo "Please add parameter. Apply or Restore\n e.g: ./$(currentdir)/RunMe.sh apply"
   ;;
 esac

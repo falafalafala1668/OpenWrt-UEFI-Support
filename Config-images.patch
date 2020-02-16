@@ -1,5 +1,5 @@
 --- config/Config-images.in	2020-02-12 14:30:07.413413408 +0800
-+++ OpenWrt-UEFI-Support/src/config/Config-images.in	2020-02-13 22:49:14.140513992 +0800
++++ OpenWrt-UEFI-Support/src/config/Config-images.in	2020-02-13 22:49:14.000000000 +0800
 @@ -191,23 +191,30 @@
  		depends on TARGET_x86
  		depends on TARGET_ROOTFS_EXT4FS || TARGET_ROOTFS_ISO || TARGET_ROOTFS_JFFS2 || TARGET_ROOTFS_SQUASHFS
