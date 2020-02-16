@@ -1,11 +1,11 @@
-# OpenWrt UEFI Support (19.07 Branch)
+# OpenWrt UEFI Support (19.07 Branch, Unofficial Support)
 Since OpenWrt Project has not yet accepted any UEFI-Boot approach, extract based on the original jow.git and modify it to be compatible with the current version.
+
+These patches are for the convenience of quickly adding UEFI startup support and these are **temporary solutions**. I hope official can support UEFI as soon as possible.
 
 Tested in Openwrt Master & 19.07 source branches.
 
 ![](https://github.com/falafalafala1668/OpenWrt-UEFI-Support/blob/master/src/Screenshots/2.png)
-
-**UEFI Secure Boot Coming Soon.**
 
 # Usage
 Before clone the patches, please check your OpenWrt source branch:
@@ -43,7 +43,7 @@ Before update, Please ensure that the following files have not been modified.
 ```
 config/Config-images.in
 package/base-files/files/lib/upgrade/common.sh
-package/base-files/files/sbin/sysupgrade
+package/base-files/files/lib/preinit/80_mount_root
 package/boot/grub2/Makefile
 tools/Makefile
 target/linux/x86/base-files/lib/upgrade/platform.sh
@@ -68,7 +68,7 @@ If you OpenWrt isn't official sources, or you have been modified these files.You
 ```
 config/Config-images.in
 package/base-files/files/lib/upgrade/common.sh
-package/base-files/files/sbin/sysupgrade
+package/base-files/files/lib/preinit/80_mount_root
 package/boot/grub2/Makefile
 tools/Makefile
 target/linux/x86/base-files/lib/upgrade/platform.sh
@@ -85,10 +85,12 @@ then apply the patches
 ./OpenWrt-UEFI-Support/RunMe.sh apply
 ```
 
-# Thanks
+# Acknowledgement
 [OpenWrt Project](https://github.com/openwrt/openwrt.git)
 
 [Jo-Philipp Wich](https://git.openwrt.org/openwrt/staging/jow.git)
+
+[Alif M. Ahmad](https://github.com/alive4ever/openwrt)
 
 # Reference
 [OpenWrt on UEFI based x86 systems](https://openwrt.org/docs/guide-developer/uefi-bootable-image)
