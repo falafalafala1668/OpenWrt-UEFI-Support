@@ -1,23 +1,23 @@
---- package/base-files/files/lib/upgrade/common.sh	2020-01-30 20:30:37.599740700 +0800
-+++ openwrt-uefi-support/src/package/base-files/files/lib/upgrade/common.sh	2020-01-30 00:01:27.163762000 +0800
-@@ -125,6 +125,24 @@
+--- package/base-files/files/lib/upgrade/common.sh	2020-02-14 23:06:11.000000000 +0800
++++ OpenWrt-UEFI-Support/src/package/base-files/files/lib/upgrade/common.sh	2020-02-16 16:46:45.779728474 +0800
+@@ -1,4 +1,4 @@
+-#!/bin/sh
++#!/bin/sh -x
+ 
+ RAM_ROOT=/tmp/root
+ 
+@@ -125,6 +125,18 @@
  		esac
  
  		case "$rootpart" in
-+			PARTUUID=[A-F0-9][A-F0-9][A-F0-9][A-F0-9][A-F0-9][A-F0-9][A-F0-9][A-F0-9]-[A-F0-9][A-F0-9][A-F0-9][A-F0-9]-[A-F0-9][A-F0-9][A-F0-9][A-F0-9]-[A-F0-9][A-F0-9][A-F0-9][A-F0-9]-[A-F0-9][A-F0-9][A-F0-9][A-F0-9][A-F0-9][A-F0-9][A-F0-9][A-F0-9]0002)
++			PARTUUID=[A-F0-9][A-F0-9][A-F0-9][A-F0-9][A-F0-9][A-F0-9][A-F0-9][A-F0-9]-[A-F0-9][A-F0-9][A-F0-9][A-F0-9]-[A-F0-9][A-F0-9][A-F0-9][A-F0-9]-[A-F0-9][A-F0-9][A-F0-9][A-F0-9]-[A-F0-9][A-F0-9][A-F0-9][A-F0-9][A-F0-9][A-F0-9][A-F0-9][A-F0-9][A-F0-9][A-F0-9][A-F0-9][A-F0-9])
 +				uuid="${rootpart#PARTUUID=}"
-+				uuid="${uuid%0002}0002"
 +				for blockdev in $(find /dev -type b); do
-+					set -- $(dd if=$blockdev bs=1 skip=$((2*512+256+128+16)) count=16 2>/dev/null | hexdump -v -e '4/1 "%02x"' | awk '{ \
-+							for(i=1;i<9;i=i+2) first=substr($0,i,1) substr($0,i+1,1) first; \
-+							for(i=9;i<13;i=i+2) second=substr($0,i,1) substr($0,i+1,1) second; \
-+							for(i=13;i<16;i=i+2) third=substr($0,i,1) substr($0,i+1,1) third; \
-+							fourth = substr($0,17,4); \
-+							five = substr($0,21,12); \
-+						} END { print toupper(first"-"second"-"third"-"fourth"-"five) }')
-+					if [ "$1" = "$uuid" ]; then
-+						uevent="/sys/class/block/${blockdev##*/}/uevent"
-+						export SAVE_PARTITIONS=0
++					set -- $(dd if=$blockdev bs=1 skip=1168 count=16 2>/dev/null | hexdump -v -e '8/1 "%02X "" "2/1 "%02X""-"6/1 "%02X"')
++					if [ "$4$3$2$1-$6$5-$8$7-$9" = "$uuid" ]; then
++						blockdev=${blockdev##*/}
++						uevent="/sys/class/block/${blockdev%[0-9]}/uevent"
++						export UPGRADE_OPT_SAVE_PARTITIONS="0"
 +						break
 +					fi
 +				done
@@ -25,3 +25,30 @@
  			PARTUUID=[a-f0-9][a-f0-9][a-f0-9][a-f0-9][a-f0-9][a-f0-9][a-f0-9][a-f0-9]-[a-f0-9][a-f0-9])
  				uuid="${rootpart#PARTUUID=}"
  				uuid="${uuid%-[a-f0-9][a-f0-9]}"
+@@ -208,7 +220,25 @@
+ 
+ 		local part
+ 		for part in 1 2 3 4; do
+-			set -- $(hexdump -v -n 12 -s "$((0x1B2 + $part * 16))" -e '3/4 "0x%08X "' "$disk")
++			if [ "$(dd if="$disk" bs=1 skip=512 count=8 2>/dev/null)" = "EFI PART" ]; then
++				case $(hexdump -v -n 16 -s "$(( 0x380 + $part * 128 ))" -e '4/4 "%08X"' "$disk") in
++					"0FC63DAF47728483693D798EE47D47D8")
++						gptTypeID="0x00000083"
++						;;
++					"C12A732811D2F81FA0004BBA3BC93EC9")
++						gptTypeID="0x000000EE"
++						;;
++					*)
++						gptTypeID="0x00000000"
++						;;
++				esac
++
++				gptLBA=$(hexdump -v -n 4 -s $(( 0x3A0 + $part * 128 )) -e '1/4 "0x%08X"' "$disk")
++				gptNUM=$(hexdump -v -n 4 -s $(( 0x3A8 + $part * 128 )) -e '1/4 "0x%08X"' "$disk")
++				set -- $gptTypeID $gptLBA $gptNUM
++			else
++				set -- $(hexdump -v -n 12 -s "$((0x1B2 + $part * 16))" -e '3/4 "0x%08X "' "$disk")
++			fi
+ 
+ 			local type="$(( $(hex_le32_to_cpu $1) % 256))"
+ 			local lba="$(( $(hex_le32_to_cpu $2) ))"

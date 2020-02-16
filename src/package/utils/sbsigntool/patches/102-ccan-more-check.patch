@@ -1,0 +1,138 @@
+--- a/configure.ac
++++ b/configure.ac
+@@ -108,6 +108,135 @@
+ 	[AC_MSG_RESULT([Using ccan bswap_64 function])]
+ 	)
+ 
++AC_COMPILE_IFELSE([AC_LANG_SOURCE(
++	int main(int argc, char *argv[]) {
++	    __typeof__(argc) i;
++	    i = argc;
++	    return i == argc ? 0 : 1;
++	    }
++	    )],
++	    AC_DEFINE([HAVE_TYPEOF], [1], [Define to 1 if you have __typeof__ function.]),
++	    AC_MSG_RESULT([__typeof__ function is not available])
++	    )
++
++AC_COMPILE_IFELSE([AC_LANG_SOURCE(
++	int main() {
++	return __builtin_choose_expr(1, 0, "garbage");
++	}
++	)],
++	AC_DEFINE([HAVE_BUILTIN_CHOOSE_EXPR], [1], [Define if you have __builtin_choose_expr]),
++	AC_MSG_RESULT([__builtin_choose_expr is not available])
++	)
++
++AC_COMPILE_IFELSE([AC_LANG_SOURCE(
++	int main() {
++	return __builtin_types_compatible_p(char *, int) ? 1 : 0;
++	}
++	)],
++	AC_DEFINE([HAVE_BUILTIN_TYPES_COMPATIBLE_P], [1], [Define to 1 if you have __builtin_types_compatible_p function]),
++	AC_MSG_RESULT([__builtin_types_compatible_p is not available])
++	)
++
++AC_COMPILE_IFELSE([AC_LANG_SOURCE(
++	struct foo {
++	       unsigned int x;
++	       int arr[];
++	       };
++	)],
++	AC_DEFINE([HAVE_FLEXIBLE_ARRAY_MEMBER], [1], [Define to 1 if flexible array member is available]),
++	AC_MSG_RESULT([Flexible array member is not available])
++	)
++
++AC_COMPILE_IFELSE([AC_LANG_SOURCE(
++	#define _GNU_SOURCE
++	#include <ctype.h>
++	static int func(void) {
++	       return isblank(' ');
++	       }
++	)],
++	AC_DEFINE([HAVE_ISBLANK], [1], [Define to 1 if isblank is available]),
++	AC_MSG_RESULT([isblank is not available])
++	)
++
++AC_COMPILE_IFELSE([AC_LANG_SOURCE(
++	int main(int argc, char *argv[]) {
++	    return __builtin_expect(argc == 1, 1) ? 0 : 1;
++	    }
++	)],
++	AC_DEFINE([HAVE_BUILTIN_EXPECT], [1], [Define to 1 if __builtin_expect is available]),
++	AC_MSG_RESULT([__builtin_expect is not available])
++	)
++
++AC_COMPILE_IFELSE([AC_LANG_SOURCE(
++	static int __attribute__((cold)) func(int x) {
++	       return x;
++	       }
++	)],
++	AC_DEFINE([HAVE_ATTRIBUTE_COLD], [1], [Define to 1 if __attribute__((cold)) is present]),
++	AC_MSG_RESULT([__attribute__((cold)) is not present])
++	)
++
++AC_COMPILE_IFELSE([AC_LANG_SOURCE(
++	static int __attribute__((const)) func(int x) {
++	       return x;
++	       }
++	)],
++	AC_DEFINE([HAVE_ATTRIBUTE_CONST], [1], [Define to 1 if __attribute__((const)) is present])
++	)
++
++AC_COMPILE_IFELSE([AC_LANG_SOURCE(
++	#include <stdlib.h>
++	static void __attribute__((noreturn)) func(int x) {
++	       exit(x);
++	       }
++	)],
++	AC_DEFINE([HAVE_ATTRIBUTE_NORETURN], [1], [Define to 1 if __attribute__((noreturn)) is present]),
++	AC_MSG_RESULT([__attribute__((noreturn)) is not present])
++	)
++
++AC_COMPILE_IFELSE([AC_LANG_SOURCE(
++	static void __attribute__((format(__printf__, 1, 2))) func(const char *fmt, ...) { }
++	)],
++	AC_DEFINE([HAVE_ATTRIBUTE_PRINTF], [1], [Define to 1 if __attribute__((format(__printf__))) is available]),
++	AC_MSG_RESULT([__attribute__((format(__printf__))) is not available])
++	)
++
++AC_COMPILE_IFELSE([AC_LANG_SOURCE(
++	static int __attribute__((unused)) func(int x) {
++	       return x;
++	       }
++	)],
++	AC_DEFINE([HAVE_ATTRIBUTE_UNUSED], [1], [Define to 1 if __attribute__((unused)) is available]),
++	AC_MSG_RESULT([__attribute__((unused)) is not available])
++	)
++
++AC_COMPILE_IFELSE([AC_LANG_SOURCE(
++	static int __attribute__((used)) func(int x) { return x; }
++	)],
++	AC_DEFINE([HAVE_ATTRIBUTE_USED], [1], [Define to 1 if __attribute__((used)) is available]),
++	AC_MSG_RESULT([__attribute__((used)) is not available])
++	)
++
++AC_COMPILE_IFELSE([AC_LANG_SOURCE(
++	int main() {
++	    return __builtin_constant_p(1) ? 0 : 1;
++	    }
++	)],
++	AC_DEFINE([HAVE_BUILTIN_CONSTANT_P], [1], [Define to 1 if __builtin_constant_p is available]),
++	AC_MSG_RESULT([__builtin_constant_p is not available])
++	)
++
++AC_COMPILE_IFELSE([AC_LANG_SOURCE(
++	#include <sys/types.h>
++	#include <utime.h>
++	static __attribute__((warn_unused_result)) int func(int i) {
++	       return i + 1;
++	       }
++	)],
++	AC_DEFINE([HAVE_WARN_UNUSED_RESULT], [1], [Define to 1 if __attribute__((warn_unused_result)) is available]),
++	AC_MSG_RESULT([__attribute__((warn_unused_result)) is not available])
++	)
++
+ AC_CONFIG_FILES([Makefile src/Makefile lib/ccan/Makefile]
+ 		[docs/Makefile tests/Makefile])
+ AC_OUTPUT

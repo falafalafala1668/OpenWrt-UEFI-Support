@@ -1,0 +1,23 @@
+--- a/configure.ac
++++ b/configure.ac
+@@ -89,6 +89,20 @@
+ AC_SUBST(EFI_ARCH, $EFI_ARCH)
+ AC_SUBST(CRTPATH, $CRTPATH)
+ 
++AC_CHECK_HEADER([byteswap.h],
++	[AC_DEFINE([HAVE_BYTESWAP_H], [1], [Define to 1 if you have byteswap.h])],
++	[AC_MSG_RESULT([Using ccan endian.h definition])])
++
++AC_COMPILE_IFELSE([AC_LANG_SOURCE(
++	#ifdef HAVE_BYTESWAP_H
++	#include <byteswap.h>
++	#endif
++	static int func(int x) { return bswap_64(x); }
++	)],
++	[AC_DEFINE([HAVE_BSWAP_64], [1], [Define to 1 if you have bswap_64 function.])],
++	[AC_MSG_RESULT([Using ccan bswap_64 function])]
++	)
++
+ AC_CONFIG_FILES([Makefile src/Makefile lib/ccan/Makefile]
+ 		[docs/Makefile tests/Makefile])
+ AC_OUTPUT

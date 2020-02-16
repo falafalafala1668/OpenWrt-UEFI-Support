@@ -1,0 +1,10 @@
+sbsigntool: don't include docs
+
+Strip docs from Makefile.am so docs aren't generated.
+
+--- a/Makefile.am
++++ b/Makefile.am
+@@ -1,2 +1,2 @@
+ 
+-SUBDIRS = lib/ccan src docs tests
++SUBDIRS = lib/ccan src tests

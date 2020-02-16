@@ -1,5 +1,5 @@
---- config/Config-images.in	2020-02-12 21:19:16.889265886 +0800
-+++ OpenWrt-UEFI-Support/src/config/Config-images.in	2020-02-12 21:20:20.088978353 +0800
+--- config/Config-images.in	2020-02-14 21:37:40.929096095 +0800
++++ OpenWrt-UEFI-Support/src/config/Config-images.in	2020-02-16 19:35:27.852084418 +0800
 @@ -195,19 +195,26 @@
  		select PACKAGE_grub2
  		default y
@@ -54,6 +54,22 @@
  		default "OpenWrt"
  		help
  		  This is the title of the GRUB menu entry.
+@@ -240,13 +247,13 @@
+ 	config VDI_IMAGES
+ 		bool "Build VirtualBox image files (VDI)"
+ 		depends on TARGET_x86
+-		select GRUB_IMAGES
++		select EFI_IMAGES
+ 		select PACKAGE_kmod-e1000
+ 
+ 	config VMDK_IMAGES
+ 		bool "Build VMware image files (VMDK)"
+ 		depends on TARGET_x86
+-		select GRUB_IMAGES
++		select EFI_IMAGES
+ 		select PACKAGE_kmod-e1000
+ 
+ 	config TARGET_IMAGES_GZIP
 @@ -260,21 +267,21 @@
  
  	config TARGET_KERNEL_PARTSIZE
@@ -61,15 +77,14 @@
 -		depends on GRUB_IMAGES || USES_BOOT_PART
 +		depends on GRUB_IMAGES || EFI_IMAGES || USES_BOOT_PART
  		default 8 if TARGET_apm821xx_sata
- 		default 64 if TARGET_brcm2708
+ 		default 64 if TARGET_bcm27xx
  		default 16
  
  	config TARGET_ROOTFS_PARTSIZE
  		int "Root filesystem partition size (in MB)"
 -		depends on GRUB_IMAGES || USES_ROOTFS_PART || TARGET_ROOTFS_EXT4FS || TARGET_omap || TARGET_rb532 || TARGET_sunxi || TARGET_uml
--		default 104
 +		depends on GRUB_IMAGES || EFI_IMAGES || USES_ROOTFS_PART || TARGET_ROOTFS_EXT4FS || TARGET_omap || TARGET_rb532 || TARGET_sunxi || TARGET_uml
-+		default 128
+ 		default 104
  		help
  		  Select the root filesystem partition size.
  

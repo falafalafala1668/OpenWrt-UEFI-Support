@@ -7,6 +7,9 @@ include ../Makefile
 
 PKG_BUILD_DEPENDS:=grub2/host
 
+PATCH_DIR := ../patches
+HOST_PATCH_DIR := ../patches
+
 define Package/grub2
 $(call Package/grub2/Default)
 endef

@@ -1,0 +1,10 @@
+--- a/configure.ac
++++ b/configure.ac
+@@ -1,6 +1,6 @@
+ AC_INIT([sbsigntool], [0.9.1], [James.Bottomley@HansenPartnership.com])
+ 
+-AM_INIT_AUTOMAKE()
++AM_INIT_AUTOMAKE([subdir-objects])
+ 
+ AC_PREREQ(2.60)
+ 

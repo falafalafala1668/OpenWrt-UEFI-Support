@@ -1,0 +1,161 @@
+--- a/Make.rules
++++ b/Make.rules
+@@ -13,18 +13,19 @@
+ else
+ $(error unknown architecture $(ARCH))
+ endif
+-INCDIR	   = -I$(TOPDIR)include/ -I/usr/include/efi -I/usr/include/efi/$(ARCH) -I/usr/include/efi/protocol
++CROSS_COMPILE_PATH ?= $(STAGING_DIR)
++INCDIR	   = -I$(TOPDIR)include/ -I$(CROSS_COMPILE_PATH)/usr/include/efi -I$(CROSS_COMPILE_PATH)/usr/include/efi/$(ARCH) -I$(CROSS_COMPILE_PATH)/usr/include/efi/protocol -I$(CROSS_COMPILE_PATH)/include
+ CPPFLAGS   = -DCONFIG_$(ARCH)
+ CFLAGS	   = -O2 -g $(ARCH3264) -fpic -Wall -fshort-wchar -fno-strict-aliasing -fno-merge-constants -fno-stack-protector -ffreestanding -fno-stack-check
+ LDFLAGS	   = -nostdlib
+ CRTOBJ		= crt0-efi-$(ARCH).o
+-CRTPATHS	= /lib /lib64 /lib/efi /lib64/efi /usr/lib /usr/lib64 /usr/lib/efi /usr/lib64/efi /usr/lib/gnuefi /usr/lib64/gnuefi
++CRTPATHS	= $(CROSS_COMPILE_PATH)/lib $(CROSS_COMPILE_PATH)/lib64 $(CROSS_COMPILE_PATH)/lib/efi $(CROSS_COMPILE_PATH)/lib64/efi $(CROSS_COMPILE_PATH)/usr/lib $(CROSS_COMPILE_PATH)/usr/lib64 $(CROSS_COMPILE_PATH)/usr/lib/efi $(CROSS_COMPILE_PATH)/usr/lib64/efi $(CROSS_COMPILE_PATH)/usr/lib/gnuefi $(CROSS_COMPILE_PATH)/usr/lib64/gnuefi
+ CRTPATH		= $(shell for f in $(CRTPATHS); do if [ -e $$f/$(CRTOBJ) ]; then echo $$f; break; fi; done)
+ CRTOBJS		= $(CRTPATH)/$(CRTOBJ)
+ # there's a bug in the gnu tools ... the .reloc section has to be
+ # aligned otherwise the file alignment gets screwed up
+ LDSCRIPT	= elf_$(ARCH)_efi.lds
+-LDFLAGS		+= -shared -Bsymbolic $(CRTOBJS) -L $(CRTPATH) -L /usr/lib -L /usr/lib64 -T $(LDSCRIPT)
++LDFLAGS		+= -shared -Bsymbolic $(CRTOBJS) -L $(CRTPATH) -L $(CROSS_COMPILE_PATH)/usr/lib -L $(CROSS_COMPILE_PATH)/usr/lib64 -T $(LDSCRIPT)
+ LOADLIBES	= -lefi -lgnuefi $(shell $(CC) $(ARCH3264) -print-libgcc-file-name)
+ FORMAT		= --target=efi-app-$(ARCH)
+ OBJCOPY		= objcopy
+@@ -65,39 +66,6 @@
+ 	# check we have no undefined symbols
+ 	nm -D $@ | grep ' U ' && exit 1 || exit 0
+ 
+-%.h: %.auth
+-	./xxdi.pl $< > $@
+-
+-%.hash: %.efi hash-to-efi-sig-list
+-	./hash-to-efi-sig-list $< $@
+-
+-%-blacklist.esl: %.crt cert-to-efi-hash-list
+-	./cert-to-efi-sig-list $< $@
+-
+-%-hash-blacklist.esl: %.crt cert-to-efi-hash-list
+-	./cert-to-efi-hash-list $< $@
+-
+-%.esl: %.crt cert-to-efi-sig-list
+-	./cert-to-efi-sig-list -g $(MYGUID) $< $@
+-
+-getcert = $(shell if [ "$(1)" = "PK" -o "$(1)" = "KEK" ]; then echo "-c PK.crt -k PK.key"; else echo "-c KEK.crt -k KEK.key"; fi)
+-getvar = $(shell if [ "$(1)" = "PK" -o "$(1)" = "KEK" ]; then echo $(1); else echo db; fi)
+-
+-%.auth: %.esl PK.crt KEK.crt sign-efi-sig-list
+-	./sign-efi-sig-list $(call getcert,$*) $(call getvar,$*) $< $@
+-
+-%-update.auth: %.esl PK.crt KEK.crt sign-efi-sig-list
+-	./sign-efi-sig-list -a $(call getcert,$*) $(call getvar,$*) $< $@
+-
+-%-pkupdate.auth: %.esl PK.crt sign-efi-sig-list
+-	./sign-efi-sig-list -a -c PK.crt -k PK.key $(call getvar,$*) $< $@
+-
+-%-blacklist.auth: %-blacklist.esl KEK.crt sign-efi-sig-list
+-	./sign-efi-sig-list -a -c KEK.crt -k KEK.key dbx $< $@
+-
+-%-pkblacklist.auth: %-blacklist.esl PK.crt sign-efi-sig-list
+-	./sign-efi-sig-list -a -c PK.crt -k PK.key dbx $< $@
+-
+ %.o: %.c
+ 	$(CC) $(INCDIR) $(CFLAGS) $(CPPFLAGS) -c $< -o $@
+ 
+@@ -107,29 +75,5 @@
+ %.efi.s: %.c
+ 	$(CC) -S $(INCDIR) $(CFLAGS) $(CPPFLAGS) -fno-toplevel-reorder -DBUILD_EFI -c $< -o $@
+ 
+-%.crt:
+-	openssl req -new -x509 -newkey rsa:2048 -subj "/CN=$*/" -keyout $*.key -out $@ -days 3650 -nodes -sha256
+-
+-%.cer: %.crt
+-	openssl x509 -in $< -out $@ -outform DER
+-
+-%-subkey.csr:
+-	openssl req -new -newkey rsa:2048 -keyout $*-subkey.key -subj "/CN=Subkey $* of KEK/" -out $@ -nodes
+-
+-%-subkey.crt: %-subkey.csr KEK.crt
+-	openssl x509 -req -in $< -CA DB.crt -CAkey DB.key -set_serial 1 -out $@ -days 365
+-
+-%-signed.efi: %.efi DB.crt
+-	sbsign --key DB.key --cert DB.crt --output $@ $<
+-
+-##
+-# No need for KEK signing
+-##
+-#%-kek-signed.efi: %.efi KEK.crt
+-#	sbsign --key KEK.key --cert KEK.crt --output $@ $<
+-
+ %.a:
+ 	ar rcv $@ $^
+-
+-doc/%.1: doc/%.1.in %
+-	$(HELP2MAN) --no-info -i $< -o $@ ./$*
+--- a/Makefile
++++ b/Makefile
+@@ -1,13 +1,9 @@
+-EFIFILES = HelloWorld.efi LockDown.efi Loader.efi ReadVars.efi UpdateVars.efi \
++EFIFILES = HelloWorld.efi Loader.efi ReadVars.efi UpdateVars.efi \
+ 	KeyTool.efi HashTool.efi SetNull.efi ShimReplace.efi
+ BINARIES = cert-to-efi-sig-list sig-list-to-certs sign-efi-sig-list \
+ 	hash-to-efi-sig-list efi-readvar efi-updatevar cert-to-efi-hash-list \
+ 	flash-var
+ 
+-ifeq ($(ARCH),x86_64)
+-EFIFILES += PreLoader.efi
+-endif
+-
+ MSGUID = 77FA9ABD-0359-4D32-BD60-28F4E78F784B
+ 
+ KEYS = PK KEK DB
+@@ -27,9 +23,7 @@
+ 
+ EFISIGNED = $(patsubst %.efi,%-signed.efi,$(EFIFILES))
+ 
+-all: $(EFISIGNED) $(BINARIES) $(MANPAGES) noPK.auth $(KEYAUTH) \
+-	$(KEYUPDATEAUTH) $(KEYBLACKLISTAUTH) $(KEYHASHBLACKLISTAUTH)
+-
++all: $(EFIFILES) $(BINARIES)
+ 
+ install: all
+ 	$(INSTALL) -m 755 -d $(MANDIR)
+@@ -53,37 +47,11 @@
+ .KEEP: PK.crt KEK.crt DB.crt PK.key KEK.key DB.key PK.esl DB.esl KEK.esl \
+ 	$(EFIFILES)
+ 
+-LockDown.o: PK.h KEK.h DB.h
+-PreLoader.o: hashlist.h
+-
+-PK.h: PK.auth
+-
+-KEK.h: KEK.auth
+-
+-DB.h: DB.auth
+-
+-noPK.esl:
+-	> noPK.esl
+-
+-noPK.auth: noPK.esl PK.crt sign-efi-sig-list
+-	./sign-efi-sig-list -t "$(shell date --date='1 second' +'%Y-%m-%d %H:%M:%S')" -c PK.crt -k PK.key PK $< $@
+-
+-ms-%.esl: ms-%.crt cert-to-efi-sig-list
+-	./cert-to-efi-sig-list -g $(MSGUID) $< $@
+-
+-hashlist.h: HashTool.hash
+-	cat $^ > /tmp/tmp.hash
+-	./xxdi.pl /tmp/tmp.hash > $@
+-	rm -f /tmp/tmp.hash
+-
+-
+ Loader.so: lib/lib-efi.a
+ ReadVars.so: lib/lib-efi.a lib/asn1/libasn1-efi.a
+ UpdateVars.so: lib/lib-efi.a
+-LockDown.so: lib/lib-efi.a
+ KeyTool.so: lib/lib-efi.a lib/asn1/libasn1-efi.a
+ HashTool.so: lib/lib-efi.a
+-PreLoader.so: lib/lib-efi.a
+ HelloWorld.so: lib/lib-efi.a
+ ShimReplace.so: lib/lib-efi.a
+ 

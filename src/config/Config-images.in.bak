@@ -202,6 +202,34 @@ menu "Target Images"
 		select PACKAGE_grub2-efi
 		default y
 
+	config EFI_SIGNED_BINARY
+	       bool "Sign EFI executable binaries (bootloader and kernel)"
+	       depends on EFI_IMAGES
+	       select PACKAGE_sbsigntool
+	       default n
+	       help
+		Select this option if secure boot is needed.
+
+	config EFI_SIGNING_PRIVATE_KEY
+	       string "Private key file to sign the UEFI binaries"
+	       depends on EFI_SIGNED_BINARY
+	       default "./db.key"
+	       help
+		Path of private key file to sign UEFI binaries
+		(PEM private key).
+		The private key needs to be present or signing
+		won't be performed.
+
+	config EFI_SIGNING_PUBLIC_KEY
+	       string "Public key accompanying the private key file"
+	       depends on EFI_SIGNED_BINARY
+	       default "./db.crt"
+	       help
+		Path of the public key accompanying private key
+		to sign UEFI binaries (PEM x509 certificate).
+		The certificate needs to be present. Without it,
+		signing won't be performed.
+
 	config GRUB_CONSOLE
 		bool "Use Console Terminal (in addition to Serial)"
 		depends on GRUB_IMAGES || EFI_IMAGES

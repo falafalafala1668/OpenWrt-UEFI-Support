@@ -1,0 +1,23 @@
+--- a/Make.rules
++++ b/Make.rules
+@@ -56,11 +56,17 @@
+ 	@$(call substitute-version,$<,$@)
+ 
+ pkg-config-cflags = \
+-	$(shell if [ -n "$(PKGS)" ]; then $(PKG_CONFIG) --cflags $(PKGS); fi)
++	$(shell if [ -n "$(PKGS)" ]; then \
++		PKG_CONFIG_SYSROOT_DIR=$(STAGING_DIR) \
++		$(PKG_CONFIG) --cflags $(PKGS); fi)
+ pkg-config-ldflags = \
+-	$(shell if [ -n "$(PKGS)" ]; then $(PKG_CONFIG) --libs-only-L --libs-only-other $(PKGS) ; fi)
++	$(shell if [ -n "$(PKGS)" ]; then \
++		PKG_CONFIG_SYSROOT_DIR=$(STAGING_DIR) \
++		$(PKG_CONFIG) --libs-only-L --libs-only-other $(PKGS) ; fi)
+ pkg-config-ldlibs = \
+-	$(shell if [ -n "$(PKGS)" ]; then $(PKG_CONFIG) --libs-only-l $(PKGS) ; fi)
++	$(shell if [ -n "$(PKGS)" ]; then \
++		PKG_CONFIG_SYSROOT_DIR=$(STAGING_DIR) \
++ 		$(PKG_CONFIG) --libs-only-l $(PKGS) ; fi)
+ 
+ objects-of = \
+ 	$(patsubst %.c,%.o,$(1))

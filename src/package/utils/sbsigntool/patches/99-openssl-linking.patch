@@ -1,0 +1,21 @@
+OpenWRT uses libressl as openssl provider, which defines OPENSSL_VERSION_NUMBER
+as 0x20000000L.
+
+--- a/src/sbverify.c
++++ b/src/sbverify.c
+@@ -56,13 +56,13 @@
+ #include <openssl/pem.h>
+ #include <openssl/x509v3.h>
+ 
+-#if OPENSSL_VERSION_NUMBER < 0x10100000L
++#if ( OPENSSL_VERSION_NUMBER == 0x20000000L || OPENSSL_VERSION_NUMBER < 0x10100000L )
+ #define X509_OBJECT_get0_X509(obj) ((obj)->data.x509)
+ #define X509_OBJECT_get_type(obj) ((obj)->type)
+ #define X509_STORE_CTX_get0_cert(ctx) ((ctx)->cert)
+ #define X509_STORE_get0_objects(certs) ((certs)->objs)
+ #define X509_get_extended_key_usage(cert) ((cert)->ex_xkusage)
+-#if OPENSSL_VERSION_NUMBER < 0x10020000L
++#if ( OPENSSL_VERSION_NUMBER == 0x20000000L || OPENSSL_VERSION_NUMBER < 0x10020000L )
+ #define X509_STORE_CTX_get0_store(ctx) ((ctx)->ctx)
+ #endif
+ #endif

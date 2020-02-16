@@ -1,0 +1,31 @@
+#!/bin/sh
+# Copyright (C) 2006 OpenWrt.org
+# Copyright (C) 2010 Vertical Communications
+
+do_mount_root() {
+	mount_root
+	boot_run_hook preinit_mount_root
+
+	local partdev magic parttype=ext4
+
+	. /lib/upgrade/common.sh
+
+	if [ "$(dd if="$disk" bs=1 skip=512 count=8 2>/dev/null)" = "EFI PART" ]; then
+		if export_bootdevice && export_partdevice partdev 1; then
+			mkdir -p /boot
+			mount -t $parttype -o rw,noatime "/dev/$partdev" /boot
+			if [ -f "/boot/$BACKUP_FILE" ]; then
+				mv -f "/boot/$BACKUP_FILE" /
+			fi
+			mount --bind /boot/boot /boot
+		fi
+	else
+		[ -f /sysupgrade.tgz ] && {
+			echo "- config restore -"
+			cd /
+			tar xzf /sysupgrade.tgz
+		}
+	fi
+}
+
+[ "$INITRAMFS" = "1" ] || boot_hook_add preinit_main do_mount_root

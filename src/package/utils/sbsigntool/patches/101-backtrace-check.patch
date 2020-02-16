@@ -1,0 +1,14 @@
+--- a/configure.ac
++++ b/configure.ac
+@@ -21,6 +21,11 @@
+   AC_MSG_ERROR([bfd.h not found.]
+ [bfd.h is usually distributed in a binutils development package.]))
+ 
++AC_CHECK_HEADER([execinfo.h],
++	[AC_DEFINE([HAVE_BACKTRACE], [1], [Define if you have execinfo.h])],
++	[AC_MSG_RESULT([backtrace feature is not available])]
++	)
++
+ if test $cross_compiling = no; then
+   AM_MISSING_PROG(HELP2MAN, help2man)
+ else
