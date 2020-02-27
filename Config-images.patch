@@ -1,5 +1,5 @@
 --- config/Config-images.in	2020-02-12 22:22:37.215089581 +0800
-+++ OpenWrt-UEFI-Support/src/config/Config-images.in	2020-02-13 22:54:21.598341086 +0800
++++ OpenWrt-UEFI-Support/src/config/Config-images.in	2020-02-27 16:41:33.143354423 +0800
 @@ -193,21 +193,28 @@
  		depends on TARGET_x86
  		depends on TARGET_ROOTFS_EXT4FS || TARGET_ROOTFS_ISO || TARGET_ROOTFS_JFFS2 || TARGET_ROOTFS_SQUASHFS
@@ -56,51 +56,38 @@
  		default "OpenWrt"
  		help
  		  This is the title of the GRUB menu entry.
-@@ -240,24 +247,18 @@
+@@ -240,14 +247,14 @@
  	config VDI_IMAGES
  		bool "Build VirtualBox image files (VDI)"
  		depends on TARGET_x86
 -		select GRUB_IMAGES
--		select TARGET_IMAGES_PAD
 +		select EFI_IMAGES
+ 		select TARGET_IMAGES_PAD
  		select PACKAGE_kmod-e1000
  
  	config VMDK_IMAGES
  		bool "Build VMware image files (VMDK)"
  		depends on TARGET_x86
 -		select GRUB_IMAGES
--		select TARGET_IMAGES_PAD
 +		select EFI_IMAGES
+ 		select TARGET_IMAGES_PAD
  		select PACKAGE_kmod-e1000
  
--	config TARGET_IMAGES_PAD
--		bool "Pad images to filesystem size (for JFFS2)"
--		depends on GRUB_IMAGES
--
- 	config TARGET_IMAGES_GZIP
- 		bool "GZip images"
--		depends on TARGET_IMAGES_PAD || TARGET_ROOTFS_EXT4FS || TARGET_x86
-+		depends on TARGET_ROOTFS_EXT4FS || TARGET_x86 || TARGET_armvirt || TARGET_malta
- 		default y
- 
- 	comment "Image Options"
-@@ -266,21 +267,21 @@
+@@ -266,21 +273,21 @@
  
  	config TARGET_KERNEL_PARTSIZE
  		int "Kernel partition size (in MB)"
 -		depends on GRUB_IMAGES || USES_BOOT_PART
 +		depends on GRUB_IMAGES || EFI_IMAGES || USES_BOOT_PART
  		default 8 if TARGET_apm821xx_sata
--		default 20 if TARGET_brcm2708
-+		default 64 if TARGET_brcm2708
+ 		default 20 if TARGET_brcm2708
  		default 16
  
  	config TARGET_ROOTFS_PARTSIZE
  		int "Root filesystem partition size (in MB)"
 -		depends on GRUB_IMAGES || USES_ROOTFS_PART || TARGET_ROOTFS_EXT4FS || TARGET_omap || TARGET_rb532 || TARGET_sunxi || TARGET_uml
--		default 256
 +		depends on GRUB_IMAGES || EFI_IMAGES || USES_ROOTFS_PART || TARGET_ROOTFS_EXT4FS || TARGET_omap || TARGET_rb532 || TARGET_sunxi || TARGET_uml
-+		default 128
+ 		default 256
  		help
  		  Select the root filesystem partition size.
  

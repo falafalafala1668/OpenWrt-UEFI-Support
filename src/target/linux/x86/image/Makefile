@@ -80,7 +80,7 @@ ifneq ($(CONFIG_GRUB_IMAGES)$(CONFIG_EFI_IMAGES),)
 		-e 's#@CMDLINE@#$(strip $(call Image/cmdline/efi,$(1),$(EFI_SIGNATURE)) $(BOOTOPTS) $(GRUB_CONSOLE_CMDLINE))#g' \
 		-e 's#@TIMEOUT@#$(GRUB_TIMEOUT)#g' \
 		-e 's#@TITLE@#$(GRUB_TITLE)#g' \
-		-e 's#set root.*#search --file /boot/grub/$(SIGNATURE).cfg --set=root#g' \
+		-e 's#set root.*#search --file /boot/grub/$(EFI_SIGNATURE).cfg --set=root#g' \
 		./grub.cfg > $(KDIR)/root.grub/boot/grub/grub.cfg
 	sed \
 		-e 's/(hd0,msdos1)/(hd0,gpt1)/' ./grub-early.cfg > \
