@@ -1,4 +1,4 @@
-#!/bin/sh -x
+#!/bin/sh
 
 RAM_ROOT=/tmp/root
 

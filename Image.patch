@@ -1,5 +1,5 @@
---- target/linux/x86/image/Makefile	2020-02-14 21:37:23.853703050 +0800
-+++ OpenWrt-UEFI-Support/src/target/linux/x86/image/Makefile	2020-02-16 20:56:05.415165270 +0800
+--- target/linux/x86/image/Makefile	2020-02-16 22:27:30.387351422 +0800
++++ OpenWrt-UEFI-Support/src/target/linux/x86/image/Makefile	2020-02-27 17:40:29.228818744 +0800
 @@ -1,4 +1,4 @@
 -# 
 +#
@@ -53,7 +53,7 @@
 +		-e 's#@CMDLINE@#$(strip $(call Image/cmdline/efi,$(1),$(EFI_SIGNATURE)) $(BOOTOPTS) $(GRUB_CONSOLE_CMDLINE))#g' \
 +		-e 's#@TIMEOUT@#$(GRUB_TIMEOUT)#g' \
 +		-e 's#@TITLE@#$(GRUB_TITLE)#g' \
-+		-e 's#set root.*#search --file /boot/grub/$(IMG_PART_SIGNATURE).cfg --set=root#g' \
++		-e 's#set root.*#search --file /boot/grub/$(EFI_SIGNATURE).cfg --set=root#g' \
 +		./grub.cfg > $(KDIR)/root.grub/boot/grub/grub.cfg
 +	sed \
 +		-e 's/(hd0,msdos1)/(hd0,gpt1)/' ./grub-early.cfg > \
