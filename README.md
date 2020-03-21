@@ -15,7 +15,7 @@ Before clone the patches, please check your OpenWrt source branch:
 
 **Master**
 ```
-git clone https://github.com/falafalafala1668/OpenWrt-UEFI-Support.git -b master-e6e1e12
+git clone https://github.com/falafalafala1668/OpenWrt-UEFI-Support.git -b e6e1e12
 ```
 
 then, in your OpenWrt source dir, enter:
