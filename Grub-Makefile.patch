@@ -1,4 +1,4 @@
---- package/boot/grub2/Makefile	2020-03-21 00:51:47.885691858 +0800
+--- package/boot/grub2/Makefile	2020-03-21 19:24:36.633527836 +0800
 +++ OpenWrt-UEFI-Support/src/package/boot/grub2/Makefile	2020-03-21 11:12:56.208744728 +0800
 @@ -8,17 +8,17 @@
  include $(TOPDIR)/rules.mk
@@ -54,10 +54,41 @@
  HOST_BUILD_PREFIX := $(STAGING_DIR_HOST)
  
  CONFIGURE_VARS += \
-@@ -81,17 +72,3 @@
+@@ -81,48 +72,3 @@
  	$(SED) 's,(RANLIB),(TARGET_RANLIB),' $(HOST_BUILD_DIR)/grub-core/Makefile.in
  	$(Host/Configure/Default)
  endef
+-
+-define Host/Install
+-	$(call Host/Install/Default)
+-
+-	$(INSTALL_DIR) $(STAGING_DIR_HOST)/lib/grub/grub2-generic
+-	$(STAGING_DIR_HOST)/bin/grub-mkimage \
+-		-d $(STAGING_DIR_HOST)/lib/grub/i386-pc \
+-		-p /boot/grub \
+-		-O i386-pc \
+-		-c ./files/grub-early.cfg \
+-		-o $(STAGING_DIR_HOST)/lib/grub/grub2-generic/core.img \
+-		at_keyboard biosdisk boot chain configfile ext2 linux ls part_msdos reboot serial vga
+-
+-	$(INSTALL_DIR) $(STAGING_DIR_HOST)/lib/grub/grub2-iso
+-	$(STAGING_DIR_HOST)/bin/grub-mkimage \
+-		-d $(STAGING_DIR_HOST)/lib/grub/i386-pc \
+-		-p /boot/grub \
+-		-O i386-pc \
+-		-c ./files/grub-early.cfg \
+-		-o $(STAGING_DIR_HOST)/lib/grub/grub2-iso/eltorito.img \
+-		at_keyboard biosdisk boot chain configfile iso9660 linux ls part_msdos reboot serial vga
+-
+-	$(INSTALL_DIR) $(STAGING_DIR_HOST)/lib/grub/grub2-legacy
+-	$(STAGING_DIR_HOST)/bin/grub-mkimage \
+-		-d $(STAGING_DIR_HOST)/lib/grub/i386-pc \
+-		-p /boot/grub \
+-		-O i386-pc \
+-		-c ./files/grub-early.cfg \
+-		-o $(STAGING_DIR_HOST)/lib/grub/grub2-legacy/core.img \
+-		biosdisk boot chain configfile ext2 linux ls part_msdos reboot serial vga
+-endef
 -
 -define Package/grub2/install
 -	$(INSTALL_DIR) $(1)/usr/sbin

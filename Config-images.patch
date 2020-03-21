@@ -1,8 +1,25 @@
---- config/Config-images.in	2020-03-20 23:40:17.434915155 +0800
-+++ OpenWrt-UEFI-Support/src/config/Config-images.in	2020-02-27 17:44:45.473903398 +0800
-@@ -193,21 +193,28 @@
+--- config/Config-images.in	2020-03-21 19:24:36.629211454 +0800
++++ OpenWrt-UEFI-Support/src/config/Config-images.in	2020-03-21 20:20:48.034657418 +0800
+@@ -120,6 +120,13 @@
+ 			help
+ 			  Create an ext4 filesystem with a journal.
+ 
++	config TARGET_ROOTFS_ISO
++		bool "iso"
++		default n
++		depends on TARGET_x86_generic
++		help
++		  Create a bootable ISO image.
++
+ 	config TARGET_ROOTFS_JFFS2
+ 		bool "jffs2"
+ 		depends on USES_JFFS2
+@@ -184,23 +191,30 @@
+ 	config GRUB_IMAGES
+ 		bool "Build GRUB images (Linux x86 or x86_64 host only)"
  		depends on TARGET_x86
- 		depends on TARGET_ROOTFS_EXT4FS || TARGET_ROOTFS_ISO || TARGET_ROOTFS_JFFS2 || TARGET_ROOTFS_SQUASHFS
+-		depends on TARGET_ROOTFS_EXT4FS || TARGET_ROOTFS_JFFS2 || TARGET_ROOTFS_SQUASHFS
++		depends on TARGET_ROOTFS_EXT4FS || TARGET_ROOTFS_ISO || TARGET_ROOTFS_JFFS2 || TARGET_ROOTFS_SQUASHFS
  		select PACKAGE_grub2
 +		default n
 +
@@ -32,7 +49,7 @@
  		default 38400 if TARGET_x86_generic
  		default 115200
  
-@@ -218,20 +225,20 @@
+@@ -211,40 +225,35 @@
  
  	config GRUB_BOOTOPTS
  		string "Extra kernel boot options"
@@ -56,7 +73,13 @@
  		default "OpenWrt"
  		help
  		  This is the title of the GRUB menu entry.
-@@ -240,13 +247,13 @@
+ 		  If unspecified, it defaults to OpenWrt.
+ 
+-	config ISO_IMAGES
+-		bool "Build LiveCD image (ISO)"
+-		depends on TARGET_x86
+-		select GRUB_IMAGES
+-
  	config VDI_IMAGES
  		bool "Build VirtualBox image files (VDI)"
  		depends on TARGET_x86
@@ -72,11 +95,11 @@
  		select PACKAGE_kmod-e1000
  
  	config TARGET_IMAGES_GZIP
-@@ -260,21 +267,21 @@
+@@ -258,21 +267,21 @@
  
  	config TARGET_KERNEL_PARTSIZE
  		int "Kernel partition size (in MB)"
--		depends on GRUB_IMAGES || USES_BOOT_PART
+-		depends on USES_BOOT_PART
 +		depends on GRUB_IMAGES || EFI_IMAGES || USES_BOOT_PART
  		default 8 if TARGET_apm821xx_sata
  		default 64 if TARGET_bcm27xx
@@ -84,7 +107,7 @@
  
  	config TARGET_ROOTFS_PARTSIZE
  		int "Root filesystem partition size (in MB)"
--		depends on GRUB_IMAGES || USES_ROOTFS_PART || TARGET_ROOTFS_EXT4FS || TARGET_omap || TARGET_rb532 || TARGET_sunxi || TARGET_uml
+-		depends on USES_ROOTFS_PART || TARGET_ROOTFS_EXT4FS || TARGET_omap || TARGET_rb532 || TARGET_sunxi || TARGET_uml
 +		depends on GRUB_IMAGES || EFI_IMAGES || USES_ROOTFS_PART || TARGET_ROOTFS_EXT4FS || TARGET_omap || TARGET_rb532 || TARGET_sunxi || TARGET_uml
  		default 104
  		help
