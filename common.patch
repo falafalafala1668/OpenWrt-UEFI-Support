@@ -1,4 +1,4 @@
---- package/base-files/files/lib/upgrade/common.sh	2020-02-16 22:27:30.375422986 +0800
+--- package/base-files/files/lib/upgrade/common.sh	2020-03-20 23:40:17.443802235 +0800
 +++ OpenWrt-UEFI-Support/src/package/base-files/files/lib/upgrade/common.sh	2020-02-27 17:47:19.251344338 +0800
 @@ -125,6 +125,18 @@
  		esac

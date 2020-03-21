@@ -79,20 +79,20 @@ ifneq ($(CONFIG_GRUB_IMAGES)$(CONFIG_EFI_IMAGES),)
 		-e 's#@CMDLINE@#$(strip $(call Image/cmdline/efi,$(1),$(EFI_SIGNATURE)) $(BOOTOPTS) $(GRUB_CONSOLE_CMDLINE))#g' \
 		-e 's#@TIMEOUT@#$(GRUB_TIMEOUT)#g' \
 		-e 's#@TITLE@#$(GRUB_TITLE)#g' \
-		-e 's#set root.*#search --file /boot/grub/$(EFI_SIGNATURE).cfg --set=root#g' \
+		-e 's#set root.*#search --file /boot/grub/$(IMG_PART_SIGNATURE).cfg --set=root#g' \
 		./grub.cfg > $(KDIR)/root.grub/boot/grub/grub.cfg
 	sed \
 		-e 's/(hd0,msdos1)/(hd0,gpt1)/' ./grub-early.cfg > \
 			$(KDIR)/root.grub/boot/grub/grub-early.cfg
 
-	$(CP) $(KDIR)/root.grub/boot/grub/grub.cfg $(KDIR)/root.grub/boot/grub/$(EFI_SIGNATURE).cfg
+	$(CP) $(KDIR)/root.grub/boot/grub/grub.cfg $(KDIR)/root.grub/boot/grub/$(IMG_PART_SIGNATURE).cfg
 
 	# Build the efi grub version
 	rm -rf $(KDIR)/grub2.efi/ || true
 	$(INSTALL_DIR) $(KDIR)/grub2.efi/efi/boot/
 
 	# Generate the grub search root config (grub will search for the $(EFI_SIGNATURE).cfg file placed on the boot partition as grub does not support search of GPT UUID yet)
-	echo "search --file /boot/grub/$(EFI_SIGNATURE).cfg --set=root" > $(KDIR)/grub2.efi/efi/boot/grub.cfg
+	echo "search --file /boot/grub/$(IMG_PART_SIGNATURE).cfg --set=root" > $(KDIR)/grub2.efi/efi/boot/grub.cfg
 	echo "configfile /boot/grub/grub.cfg" >> $(KDIR)/grub2.efi/efi/boot/grub.cfg
 
 	# Create the EFI grub binary
@@ -130,16 +130,17 @@ ifneq ($(CONFIG_GRUB_IMAGES)$(CONFIG_EFI_IMAGES),)
   ifneq ($(CONFIG_GRUB_IMAGES),)
   define Image/Build/grub2
 	# left here because the image builder doesnt need these
+	rm -fR $(KDIR)/root.grub $(KDIR)/grub2
 	$(INSTALL_DIR) $(KDIR)/root.grub/boot/grub $(KDIR)/grub2
 	$(CP) $(KDIR)/bzImage $(KDIR)/root.grub/boot/vmlinuz
 	grub-mkimage \
 		-p /boot/grub \
 		-d $(STAGING_DIR_HOST)/lib/grub/i386-pc \
-		-o $(KDIR)/grub2/core.img \
+		-o $(KDIR)/root.grub/boot/grub/core.img \
 		-O i386-pc \
 		-c ./grub-early.cfg \
 		$(GRUB2_MODULES)
-	$(CP) $(STAGING_DIR_HOST)/lib/grub/i386-pc/*.img $(KDIR)/grub2/
+	$(CP) $(STAGING_DIR_HOST)/lib/grub/i386-pc/*.img $(KDIR)/root.grub/boot/grub/
 	echo '(hd0) $(BIN_DIR)/$(IMG_COMBINED)-$(1).img' > $(KDIR)/grub2/device.map
 	sed \
 		-e 's#@SERIAL_CONFIG@#$(strip $(GRUB_SERIAL_CONFIG))#g' \
@@ -149,6 +150,7 @@ ifneq ($(CONFIG_GRUB_IMAGES)$(CONFIG_EFI_IMAGES),)
 		-e 's#@TITLE@#$(GRUB_TITLE)#g' \
 		./grub.cfg > $(KDIR)/root.grub/boot/grub/grub.cfg
 	-$(CP) $(STAGING_DIR_ROOT)/boot/. $(KDIR)/root.grub/boot/
+	grub-bios-setup -V | cut -d' ' -f3 > $(KDIR)/root.grub/boot/grub/version
 	PADDING="1" SIGNATURE="$(IMG_PART_SIGNATURE)" PATH="$(TARGET_PATH)" $(SCRIPT_DIR)/gen_image_generic.sh \
 		$(BIN_DIR)/$(IMG_COMBINED)-$(1).img \
 		$(CONFIG_TARGET_KERNEL_PARTSIZE) $(KDIR)/root.grub \
@@ -156,7 +158,7 @@ ifneq ($(CONFIG_GRUB_IMAGES)$(CONFIG_EFI_IMAGES),)
 		256
 	grub-bios-setup \
 		--device-map="$(KDIR)/grub2/device.map" \
-		-d "$(KDIR)/grub2" \
+		-d "$(KDIR)/root.grub/boot/grub" \
 		-r "hd0,msdos1" \
 		"$(BIN_DIR)/$(IMG_COMBINED)-$(1).img"
   endef
@@ -165,6 +167,7 @@ ifneq ($(CONFIG_GRUB_IMAGES)$(CONFIG_EFI_IMAGES),)
 endif
 
 define Image/Build/iso
+	rm -fR $(KDIR)/root.grub $(KDIR)/grub2
 	$(INSTALL_DIR) $(KDIR)/root.grub/boot/grub $(KDIR)/grub2
 	$(CP) $(KDIR)/bzImage $(KDIR)/root.grub/boot/vmlinuz
 	grub-mkimage \
