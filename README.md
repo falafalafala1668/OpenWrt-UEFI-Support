@@ -2,7 +2,7 @@
 
 **IMPORTANT**
 
-Openwrt official has changed the image generation by the way, If your source Commit ID is older than( include) ``kernel: connmark set - dscpmark fix the build on 5.4 (e6e1e12dc3230bdadf74485dbf47beb52570920c)``, please use ``e6e1e12`` tag.
+Openwrt official has changed the image generation, If your source commit ID is older than(include) ``kernel: connmark set - dscpmark fix the build on 5.4 (e6e1e12dc3230bdadf74485dbf47beb52570920c)``, please use [e6e1e12](https://github.com/falafalafala1668/OpenWrt-UEFI-Support/tree/e6e1e12) tag.
 
 Before ``git pull`` the source, please **restore** the patches!
 
