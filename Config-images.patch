@@ -1,5 +1,5 @@
 --- config/Config-images.in	2020-03-21 19:24:36.629211454 +0800
-+++ OpenWrt-UEFI-Support/src/config/Config-images.in	2020-03-21 20:20:48.034657418 +0800
++++ OpenWrt-UEFI-Support/src/config/Config-images.in	2020-03-22 21:28:07.997423746 +0800
 @@ -120,6 +120,13 @@
  			help
  			  Create an ext4 filesystem with a journal.
@@ -14,12 +14,9 @@
  	config TARGET_ROOTFS_JFFS2
  		bool "jffs2"
  		depends on USES_JFFS2
-@@ -184,23 +191,30 @@
- 	config GRUB_IMAGES
- 		bool "Build GRUB images (Linux x86 or x86_64 host only)"
+@@ -186,66 +193,81 @@
  		depends on TARGET_x86
--		depends on TARGET_ROOTFS_EXT4FS || TARGET_ROOTFS_JFFS2 || TARGET_ROOTFS_SQUASHFS
-+		depends on TARGET_ROOTFS_EXT4FS || TARGET_ROOTFS_ISO || TARGET_ROOTFS_JFFS2 || TARGET_ROOTFS_SQUASHFS
+ 		depends on TARGET_ROOTFS_EXT4FS || TARGET_ROOTFS_JFFS2 || TARGET_ROOTFS_SQUASHFS
  		select PACKAGE_grub2
 +		default n
 +
@@ -49,7 +46,11 @@
  		default 38400 if TARGET_x86_generic
  		default 115200
  
-@@ -211,40 +225,35 @@
+ 	config GRUB_FLOWCONTROL
+ 		bool "Use RTE/CTS on serial console"
+-		depends on GRUB_SERIAL != ""
++		depends on GRUB_SERIAL || EFI_IMAGES != ""
+ 		default n
  
  	config GRUB_BOOTOPTS
  		string "Extra kernel boot options"
@@ -75,11 +76,12 @@
  		  This is the title of the GRUB menu entry.
  		  If unspecified, it defaults to OpenWrt.
  
--	config ISO_IMAGES
+ 	config ISO_IMAGES
 -		bool "Build LiveCD image (ISO)"
--		depends on TARGET_x86
--		select GRUB_IMAGES
--
++		bool "Build LiveCD image (ISO) for BIOS"
+ 		depends on TARGET_x86
+ 		select GRUB_IMAGES
+ 
  	config VDI_IMAGES
  		bool "Build VirtualBox image files (VDI)"
  		depends on TARGET_x86
@@ -92,26 +94,19 @@
  		depends on TARGET_x86
 -		select GRUB_IMAGES
 +		select EFI_IMAGES
++		select PACKAGE_kmod-e1000
++		default y
++
++	config QCOW2_IMAGES
++		bool "Build PVE/KVM image files (QCOW2)"
++		depends on TARGET_x86
++		select EFI_IMAGES
  		select PACKAGE_kmod-e1000
++		default n
  
  	config TARGET_IMAGES_GZIP
-@@ -258,21 +267,21 @@
- 
- 	config TARGET_KERNEL_PARTSIZE
- 		int "Kernel partition size (in MB)"
--		depends on USES_BOOT_PART
-+		depends on GRUB_IMAGES || EFI_IMAGES || USES_BOOT_PART
- 		default 8 if TARGET_apm821xx_sata
- 		default 64 if TARGET_bcm27xx
- 		default 16
- 
- 	config TARGET_ROOTFS_PARTSIZE
- 		int "Root filesystem partition size (in MB)"
--		depends on USES_ROOTFS_PART || TARGET_ROOTFS_EXT4FS || TARGET_omap || TARGET_rb532 || TARGET_sunxi || TARGET_uml
-+		depends on GRUB_IMAGES || EFI_IMAGES || USES_ROOTFS_PART || TARGET_ROOTFS_EXT4FS || TARGET_omap || TARGET_rb532 || TARGET_sunxi || TARGET_uml
- 		default 104
- 		help
- 		  Select the root filesystem partition size.
+ 		bool "GZip images"
+@@ -272,7 +294,7 @@
  
  	config TARGET_ROOTFS_PARTNAME
  		string "Root partition on target device"

@@ -48,11 +48,12 @@ BOOTOPTS:=$(call qstrip,$(CONFIG_GRUB_BOOTOPTS))
 define Build/efi
 	$(CP) $(KDIR)/$(KERNEL_NAME) $@.boot/boot/vmlinuz
 	-$(CP) $(STAGING_DIR_ROOT)/boot/. $@.boot/boot/
+
 	SIGNATURE="$(EFI_SIGNATURE)" PATH="$(TARGET_PATH)" ./gen_image_efi.sh \
 		$@ \
 		$(CONFIG_TARGET_KERNEL_PARTSIZE) $@.boot \
 		$(CONFIG_TARGET_ROOTFS_PARTSIZE) $(IMAGE_ROOTFS) \
-		1 $(KDIR)/kernel.efi \
+		1 $@.grub2/kernel.efi \
 		256
 
 	# Convert the MBR partition to GPT and set EFI ROOTFS signature
@@ -118,10 +119,24 @@ define Build/grub-install
 		$@
 endef
 
+define Build/efi-partition
+	rm -fR $@.grub2
+	$(INSTALL_DIR) $@.grub2
+	$(CP) $(STAGING_DIR_HOST)/lib/grub/i386-pc/*.img \
+		$(STAGING_DIR_HOST)/lib/grub/grub2-$(GRUB2_VARIANT)/core.img \
+		$@.grub2/
+	mkfs.fat -C $@.grub2/kernel.efi -S 512 1024
+	mcopy -s -i $@.grub2/kernel.efi $(STAGING_DIR_HOST)/lib/grub/grub2.efi/* ::/
+endef
+
 define Build/grub-efi-install
-	rm $(KDIR)/kernel.efi || true
-	mkfs.fat -C $(KDIR)/kernel.efi -S 512 1024
-	mcopy -s -i "$(KDIR)/kernel.efi" $(STAGING_DIR_HOST)/lib/grub/grub2.efi/* ::/
+	rm $@.grub2/kernel.efi
+	echo '(hd0) $@' > $@.grub2/device.map
+	$(STAGING_DIR_HOST)/bin/grub-bios-setup-efi \
+		--device-map="$@.grub2/device.map" \
+		-d "$@.grub2" \
+		-r "hd0,gpt1" \
+		$@
 endef
 
 define Build/iso-efi
@@ -145,19 +160,25 @@ define Device/Default
   IMAGE/combined.img.gz := append-rootfs | pad-extra 128k | grub-config pc | combined | grub-install | gzip
   IMAGE/combined.vdi := append-rootfs | pad-extra 128k | grub-config pc | combined | grub-install | qemu-image vdi
   IMAGE/combined.vmdk := append-rootfs | pad-extra 128k | grub-config pc | combined | grub-install | qemu-image vmdk
-  IMAGE/uefi-gpt.img := append-rootfs | pad-extra 128k | grub-efi-config pc | grub-efi-install | efi
-  IMAGE/uefi-gpt.img.gz := append-rootfs | pad-extra 128k | grub-efi-config pc | grub-efi-install | efi | gzip
-  IMAGE/uefi-gpt.vdi := append-rootfs | pad-extra 128k | grub-efi-config pc | grub-efi-install | efi | qemu-image vdi
-  IMAGE/uefi-gpt.vmdk := append-rootfs | pad-extra 128k | grub-efi-config pc | grub-efi-install | efi | qemu-image vmdk
+  IMAGE/combined.qcow2 := append-rootfs | pad-extra 128k | grub-config pc | combined | grub-install | qemu-image qcow2
+  IMAGE/uefi-gpt.img := append-rootfs | pad-extra 128k | grub-efi-config pc | efi-partition | efi
+  IMAGE/uefi-gpt.img.gz := append-rootfs | pad-extra 128k | grub-efi-config pc | efi-partition | efi | gzip
+  IMAGE/uefi-gpt.vdi := append-rootfs | pad-extra 128k | grub-efi-config pc | efi-partition | efi | qemu-image vdi
+  IMAGE/uefi-gpt.vmdk := append-rootfs | pad-extra 128k | grub-efi-config pc | efi-partition | efi | qemu-image vmdk
+  IMAGE/uefi-gpt.qcow2 := append-rootfs | pad-extra 128k | grub-efi-config pc | efi-partition | efi | qemu-image qcow2
   ifeq ($(CONFIG_TARGET_IMAGES_GZIP),y)
-    IMAGES := combined.img.gz
 	ifeq ($(CONFIG_EFI_IMAGES),y)
-        IMAGES := uefi-gpt.img.gz
+		IMAGES := uefi-gpt.img.gz
+	endif
+	ifeq ($(CONFIG_GRUB_IMAGES),y)
+		IMAGES := combined.img.gz
 	endif
   else
-    IMAGES := combined.img
 	ifeq ($(CONFIG_EFI_IMAGES),y)
 		IMAGES := uefi-gpt.img
+	endif
+	ifeq ($(CONFIG_GRUB_IMAGES),y)
+		IMAGES := combined.img
 	endif
   endif
   KERNEL := kernel-bin
@@ -167,15 +188,27 @@ define Device/Default
     ARTIFACTS := image.iso
   endif
   ifeq ($(CONFIG_VDI_IMAGES),y)
-    IMAGES += combined.vdi
 	ifeq ($(CONFIG_EFI_IMAGES),y)
-		IMAGES := uefi-gpt.vdi
+		IMAGES += uefi-gpt.vdi
+	endif
+	ifeq ($(CONFIG_GRUB_IMAGES),y)
+		IMAGES += combined.vdi
 	endif
   endif
   ifeq ($(CONFIG_VMDK_IMAGES),y)
-    IMAGES += combined.vmdk
 	ifeq ($(CONFIG_EFI_IMAGES),y)
-		IMAGES := uefi-gpt.vmdk
+		IMAGES += uefi-gpt.vmdk
+	endif
+	ifeq ($(CONFIG_GRUB_IMAGES),y)
+		IMAGES += combined.vmdk
+	endif
+  endif
+  ifeq ($(CONFIG_QCOW2_IMAGES),y)
+	ifeq ($(CONFIG_EFI_IMAGES),y)
+	  IMAGES += uefi-gpt.qcow2
+	endif
+	ifeq ($(CONFIG_GRUB_IMAGES),y)
+	  IMAGES += combined.qcow2
 	endif
   endif
 endef

@@ -29,7 +29,7 @@ define Host/Install
 		-O x86_64-efi \
 		-c ./files/grub-early.cfg \
 		-o $(STAGING_DIR_HOST)/lib/grub/grub2.efi/efi/boot/bootx64.efi \
-		at_keyboard boot chain configfile ext2 linux ls part_gpt part_msdos reboot serial search fat exfat ext2 efi_gop efi_uga gfxterm
+		at_keyboard boot chain configfile ext2 linux ls part_msdos reboot serial part_gpt part_msdos search fat exfat ext2 efi_gop efi_uga gfxterm
 
 	# $(INSTALL_DIR) $(STAGING_DIR_HOST)/lib/grub/grub2.efi-iso/efi/boot/
 	# $(STAGING_DIR_HOST)/bin/grub-mkimage-efi \

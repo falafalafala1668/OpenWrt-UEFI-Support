@@ -24,12 +24,12 @@ PKG_SSP:=0
 
 PKG_FLAGS:=nonshared
 
-include $(INCLUDE_DIR)/host-build.mk
-include $(INCLUDE_DIR)/package.mk
-
 PATCH_DIR := ../patches
 HOST_PATCH_DIR := ../patches
 HOST_BUILD_DIR := $(BUILD_DIR_HOST)/$(PKG_NAME)-$(PKG_VERSION)
+
+include $(INCLUDE_DIR)/host-build.mk
+include $(INCLUDE_DIR)/package.mk
 
 define Package/grub2/Default
   CATEGORY:=Boot Loaders
