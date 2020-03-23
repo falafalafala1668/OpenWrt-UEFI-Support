@@ -1,5 +1,5 @@
---- target/linux/x86/image/Makefile	2020-03-21 19:47:19.461292437 +0800
-+++ OpenWrt-UEFI-Support/src/target/linux/x86/image/Makefile	2020-03-22 21:33:01.470103449 +0800
+--- target/linux/x86/image/Makefile	2020-03-21 19:47:19.000000000 +0800
++++ OpenWrt-UEFI-Support/src/target/linux/x86/image/Makefile	2020-03-23 13:53:36.427427829 +0800
 @@ -36,6 +36,7 @@
    GRUB_TERMINAL_CONFIG := terminal_input $(GRUB_TERMINALS); terminal_output $(GRUB_TERMINALS)
  endif
@@ -59,7 +59,7 @@
  define Build/grub-config
  	rm -fR $@.boot
  	$(INSTALL_DIR) $@.boot/boot/grub
-@@ -81,6 +119,29 @@
+@@ -81,6 +119,30 @@
  		$@
  endef
  
@@ -84,12 +84,13 @@
 +endef
 +
 +define Build/iso-efi
++	# xxx
 +endef
 +
  define Build/iso
  	$(CP) $(KDIR)/$(KERNEL_NAME) $@.boot/boot/vmlinuz
  	cat \
-@@ -99,10 +160,26 @@
+@@ -99,10 +161,36 @@
    IMAGE/combined.img.gz := append-rootfs | pad-extra 128k | grub-config pc | combined | grub-install | gzip
    IMAGE/combined.vdi := append-rootfs | pad-extra 128k | grub-config pc | combined | grub-install | qemu-image vdi
    IMAGE/combined.vmdk := append-rootfs | pad-extra 128k | grub-config pc | combined | grub-install | qemu-image vmdk
@@ -101,51 +102,61 @@
 +  IMAGE/uefi-gpt.qcow2 := append-rootfs | pad-extra 128k | grub-efi-config pc | efi-partition | efi | qemu-image qcow2
    ifeq ($(CONFIG_TARGET_IMAGES_GZIP),y)
 -    IMAGES := combined.img.gz
-+	ifeq ($(CONFIG_EFI_IMAGES),y)
++    ifeq ($(CONFIG_GRUB_IMAGES)$(CONFIG_EFI_IMAGES),yy)
 +		IMAGES := uefi-gpt.img.gz
-+	endif
-+	ifeq ($(CONFIG_GRUB_IMAGES),y)
-+		IMAGES := combined.img.gz
-+	endif
++		IMAGES += combined.img.gz
++    else
++      ifeq ($(CONFIG_GRUB_IMAGES),y)
++        IMAGES := combined.img.gz
++      endif
++      ifeq ($(CONFIG_EFI_IMAGES),y)
++        IMAGES := uefi-gpt.img.gz
++      endif
++    endif
    else
 -    IMAGES := combined.img
-+	ifeq ($(CONFIG_EFI_IMAGES),y)
++    ifeq ($(CONFIG_GRUB_IMAGES)$(CONFIG_EFI_IMAGES),yy)
 +		IMAGES := uefi-gpt.img
-+	endif
-+	ifeq ($(CONFIG_GRUB_IMAGES),y)
-+		IMAGES := combined.img
-+	endif
++		IMAGES += combined.img
++    else
++	    ifeq ($(CONFIG_GRUB_IMAGES),y)
++	      IMAGES := combined.img
++	    endif
++	    ifeq ($(CONFIG_EFI_IMAGES),y)
++	      IMAGES := uefi-gpt.img
++	    endif
++    endif
    endif
    KERNEL := kernel-bin
    KERNEL_INSTALL := 1
-@@ -111,10 +188,28 @@
+@@ -111,10 +199,28 @@
      ARTIFACTS := image.iso
    endif
    ifeq ($(CONFIG_VDI_IMAGES),y)
 -    IMAGES += combined.vdi
-+	ifeq ($(CONFIG_EFI_IMAGES),y)
-+		IMAGES += uefi-gpt.vdi
-+	endif
-+	ifeq ($(CONFIG_GRUB_IMAGES),y)
-+		IMAGES += combined.vdi
-+	endif
++    ifeq ($(CONFIG_EFI_IMAGES),y)
++      IMAGES += uefi-gpt.vdi
++    endif
++    ifeq ($(CONFIG_GRUB_IMAGES),y)
++      IMAGES += combined.vdi
++    endif
    endif
    ifeq ($(CONFIG_VMDK_IMAGES),y)
 -    IMAGES += combined.vmdk
-+	ifeq ($(CONFIG_EFI_IMAGES),y)
-+		IMAGES += uefi-gpt.vmdk
-+	endif
-+	ifeq ($(CONFIG_GRUB_IMAGES),y)
-+		IMAGES += combined.vmdk
-+	endif
++    ifeq ($(CONFIG_EFI_IMAGES),y)
++      IMAGES += uefi-gpt.vmdk
++    endif
++    ifeq ($(CONFIG_GRUB_IMAGES),y)
++      IMAGES += combined.vmdk
++    endif
 +  endif
 +  ifeq ($(CONFIG_QCOW2_IMAGES),y)
-+	ifeq ($(CONFIG_EFI_IMAGES),y)
-+	  IMAGES += uefi-gpt.qcow2
-+	endif
-+	ifeq ($(CONFIG_GRUB_IMAGES),y)
-+	  IMAGES += combined.qcow2
-+	endif
++    ifeq ($(CONFIG_EFI_IMAGES),y)
++      IMAGES += uefi-gpt.qcow2
++    endif
++    ifeq ($(CONFIG_GRUB_IMAGES),y)
++      IMAGES += combined.qcow2
++  endif
    endif
  endef
  

@@ -140,6 +140,7 @@ define Build/grub-efi-install
 endef
 
 define Build/iso-efi
+	# xxx
 endef
 
 define Build/iso
@@ -167,19 +168,29 @@ define Device/Default
   IMAGE/uefi-gpt.vmdk := append-rootfs | pad-extra 128k | grub-efi-config pc | efi-partition | efi | qemu-image vmdk
   IMAGE/uefi-gpt.qcow2 := append-rootfs | pad-extra 128k | grub-efi-config pc | efi-partition | efi | qemu-image qcow2
   ifeq ($(CONFIG_TARGET_IMAGES_GZIP),y)
-	ifeq ($(CONFIG_EFI_IMAGES),y)
+    ifeq ($(CONFIG_GRUB_IMAGES)$(CONFIG_EFI_IMAGES),yy)
 		IMAGES := uefi-gpt.img.gz
-	endif
-	ifeq ($(CONFIG_GRUB_IMAGES),y)
-		IMAGES := combined.img.gz
-	endif
+		IMAGES += combined.img.gz
+    else
+      ifeq ($(CONFIG_GRUB_IMAGES),y)
+        IMAGES := combined.img.gz
+      endif
+      ifeq ($(CONFIG_EFI_IMAGES),y)
+        IMAGES := uefi-gpt.img.gz
+      endif
+    endif
   else
-	ifeq ($(CONFIG_EFI_IMAGES),y)
+    ifeq ($(CONFIG_GRUB_IMAGES)$(CONFIG_EFI_IMAGES),yy)
 		IMAGES := uefi-gpt.img
-	endif
-	ifeq ($(CONFIG_GRUB_IMAGES),y)
-		IMAGES := combined.img
-	endif
+		IMAGES += combined.img
+    else
+	    ifeq ($(CONFIG_GRUB_IMAGES),y)
+	      IMAGES := combined.img
+	    endif
+	    ifeq ($(CONFIG_EFI_IMAGES),y)
+	      IMAGES := uefi-gpt.img
+	    endif
+    endif
   endif
   KERNEL := kernel-bin
   KERNEL_INSTALL := 1
@@ -188,28 +199,28 @@ define Device/Default
     ARTIFACTS := image.iso
   endif
   ifeq ($(CONFIG_VDI_IMAGES),y)
-	ifeq ($(CONFIG_EFI_IMAGES),y)
-		IMAGES += uefi-gpt.vdi
-	endif
-	ifeq ($(CONFIG_GRUB_IMAGES),y)
-		IMAGES += combined.vdi
-	endif
+    ifeq ($(CONFIG_EFI_IMAGES),y)
+      IMAGES += uefi-gpt.vdi
+    endif
+    ifeq ($(CONFIG_GRUB_IMAGES),y)
+      IMAGES += combined.vdi
+    endif
   endif
   ifeq ($(CONFIG_VMDK_IMAGES),y)
-	ifeq ($(CONFIG_EFI_IMAGES),y)
-		IMAGES += uefi-gpt.vmdk
-	endif
-	ifeq ($(CONFIG_GRUB_IMAGES),y)
-		IMAGES += combined.vmdk
-	endif
+    ifeq ($(CONFIG_EFI_IMAGES),y)
+      IMAGES += uefi-gpt.vmdk
+    endif
+    ifeq ($(CONFIG_GRUB_IMAGES),y)
+      IMAGES += combined.vmdk
+    endif
   endif
   ifeq ($(CONFIG_QCOW2_IMAGES),y)
-	ifeq ($(CONFIG_EFI_IMAGES),y)
-	  IMAGES += uefi-gpt.qcow2
-	endif
-	ifeq ($(CONFIG_GRUB_IMAGES),y)
-	  IMAGES += combined.qcow2
-	endif
+    ifeq ($(CONFIG_EFI_IMAGES),y)
+      IMAGES += uefi-gpt.qcow2
+    endif
+    ifeq ($(CONFIG_GRUB_IMAGES),y)
+      IMAGES += combined.qcow2
+  endif
   endif
 endef
 
