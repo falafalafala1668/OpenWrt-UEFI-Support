@@ -1,6 +1,6 @@
 # OpenWrt UEFI Support (Unofficial Support)
 
-**IMPORTANT**
+### IMPORTANT
 
 Openwrt official has changed the image generation, If your source commit ID is older than(include) ``kernel: connmark set - dscpmark fix the build on 5.4 (e6e1e12dc3230bdadf74485dbf47beb52570920c)``, please use [e6e1e12](https://github.com/falafalafala1668/OpenWrt-UEFI-Support/tree/e6e1e12) tag.
 
@@ -46,7 +46,7 @@ Go to **Target Images** and make sure that **Build EFI grub images** option is c
 
 ![](https://github.com/falafalafala1668/OpenWrt-UEFI-Support/blob/master/src/Screenshots/1.png)
 
-**Update**
+## Update
 
 Before update, Please ensure that the following files have not been modified.
 ```
@@ -72,7 +72,7 @@ Finally apply the patch:
 ./OpenWrt-UEFI-Support/RunMe.sh apply
 ```
 
-**Restore**
+## Restore
 
 ```
 ./OpenWrt-UEFI-Support/RunMe.sh restore
@@ -82,9 +82,9 @@ Finally apply the patch:
 
 Booting UEFI Image on PVE will be panic because on graphic card driver issue.(Thanks reporter [#2](https://github.com/falafalafala1668/OpenWrt-UEFI-Support/issues/2))
 
-**Solution**
+### Solution
 
-Add ``nomodeset`` to stop using the graphic card driver (``Target images-> Extra kernel boot options``)
+Add ``nomodeset`` to stop using the graphic card driver (``Target Images -> Extra kernel boot options``).
 
 # Advanced Settings
 If you OpenWrt isn't official sources, or you have been modified these files.You can generate patches by yourself.
