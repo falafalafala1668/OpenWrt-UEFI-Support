@@ -78,6 +78,14 @@ Finally apply the patch:
 ./OpenWrt-UEFI-Support/RunMe.sh restore
 ```
 
+# Known Issues
+
+Booting UEFI Image on PVE will be panic because on graphic card driver issue.(Thanks reporter [#2](https://github.com/falafalafala1668/OpenWrt-UEFI-Support/issues/2))
+
+**Solution**
+
+Add ``nomodeset`` to stop using the graphic card driver (``Target images-> Extra kernel boot options``)
+
 # Advanced Settings
 If you OpenWrt isn't official sources, or you have been modified these files.You can generate patches by yourself.
 
