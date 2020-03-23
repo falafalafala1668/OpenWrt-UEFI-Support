@@ -1,5 +1,5 @@
---- target/linux/x86/image/Makefile	2020-03-21 19:47:19.000000000 +0800
-+++ OpenWrt-UEFI-Support/src/target/linux/x86/image/Makefile	2020-03-23 13:53:36.427427829 +0800
+--- target/linux/x86/image/Makefile	2020-03-23 19:40:43.679596151 +0800
++++ OpenWrt-UEFI-Support/src/target/linux/x86/image/Makefile	2020-03-23 19:47:09.636414358 +0800
 @@ -36,6 +36,7 @@
    GRUB_TERMINAL_CONFIG := terminal_input $(GRUB_TERMINALS); terminal_output $(GRUB_TERMINALS)
  endif
@@ -103,8 +103,8 @@
    ifeq ($(CONFIG_TARGET_IMAGES_GZIP),y)
 -    IMAGES := combined.img.gz
 +    ifeq ($(CONFIG_GRUB_IMAGES)$(CONFIG_EFI_IMAGES),yy)
-+		IMAGES := uefi-gpt.img.gz
-+		IMAGES += combined.img.gz
++        IMAGES := uefi-gpt.img.gz
++        IMAGES += combined.img.gz
 +    else
 +      ifeq ($(CONFIG_GRUB_IMAGES),y)
 +        IMAGES := combined.img.gz
@@ -116,20 +116,20 @@
    else
 -    IMAGES := combined.img
 +    ifeq ($(CONFIG_GRUB_IMAGES)$(CONFIG_EFI_IMAGES),yy)
-+		IMAGES := uefi-gpt.img
-+		IMAGES += combined.img
++        IMAGES := uefi-gpt.img
++        IMAGES += combined.img
 +    else
-+	    ifeq ($(CONFIG_GRUB_IMAGES),y)
-+	      IMAGES := combined.img
-+	    endif
-+	    ifeq ($(CONFIG_EFI_IMAGES),y)
-+	      IMAGES := uefi-gpt.img
-+	    endif
++        ifeq ($(CONFIG_GRUB_IMAGES),y)
++          IMAGES := combined.img
++        endif
++        ifeq ($(CONFIG_EFI_IMAGES),y)
++          IMAGES := uefi-gpt.img
++        endif
 +    endif
    endif
    KERNEL := kernel-bin
    KERNEL_INSTALL := 1
-@@ -111,10 +199,28 @@
+@@ -111,10 +199,20 @@
      ARTIFACTS := image.iso
    endif
    ifeq ($(CONFIG_VDI_IMAGES),y)
@@ -149,14 +149,11 @@
 +    ifeq ($(CONFIG_GRUB_IMAGES),y)
 +      IMAGES += combined.vmdk
 +    endif
-+  endif
-+  ifeq ($(CONFIG_QCOW2_IMAGES),y)
-+    ifeq ($(CONFIG_EFI_IMAGES),y)
-+      IMAGES += uefi-gpt.qcow2
-+    endif
-+    ifeq ($(CONFIG_GRUB_IMAGES),y)
-+      IMAGES += combined.qcow2
-+  endif
    endif
  endef
  
+@@ -137,4 +235,3 @@
+ endif
+ 
+ $(eval $(call BuildImage))
+-

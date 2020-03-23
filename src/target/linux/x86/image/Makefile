@@ -169,8 +169,8 @@ define Device/Default
   IMAGE/uefi-gpt.qcow2 := append-rootfs | pad-extra 128k | grub-efi-config pc | efi-partition | efi | qemu-image qcow2
   ifeq ($(CONFIG_TARGET_IMAGES_GZIP),y)
     ifeq ($(CONFIG_GRUB_IMAGES)$(CONFIG_EFI_IMAGES),yy)
-		IMAGES := uefi-gpt.img.gz
-		IMAGES += combined.img.gz
+        IMAGES := uefi-gpt.img.gz
+        IMAGES += combined.img.gz
     else
       ifeq ($(CONFIG_GRUB_IMAGES),y)
         IMAGES := combined.img.gz
@@ -181,15 +181,15 @@ define Device/Default
     endif
   else
     ifeq ($(CONFIG_GRUB_IMAGES)$(CONFIG_EFI_IMAGES),yy)
-		IMAGES := uefi-gpt.img
-		IMAGES += combined.img
+        IMAGES := uefi-gpt.img
+        IMAGES += combined.img
     else
-	    ifeq ($(CONFIG_GRUB_IMAGES),y)
-	      IMAGES := combined.img
-	    endif
-	    ifeq ($(CONFIG_EFI_IMAGES),y)
-	      IMAGES := uefi-gpt.img
-	    endif
+        ifeq ($(CONFIG_GRUB_IMAGES),y)
+          IMAGES := combined.img
+        endif
+        ifeq ($(CONFIG_EFI_IMAGES),y)
+          IMAGES := uefi-gpt.img
+        endif
     endif
   endif
   KERNEL := kernel-bin
@@ -214,14 +214,6 @@ define Device/Default
       IMAGES += combined.vmdk
     endif
   endif
-  ifeq ($(CONFIG_QCOW2_IMAGES),y)
-    ifeq ($(CONFIG_EFI_IMAGES),y)
-      IMAGES += uefi-gpt.qcow2
-    endif
-    ifeq ($(CONFIG_GRUB_IMAGES),y)
-      IMAGES += combined.qcow2
-  endif
-  endif
 endef
 
 $(eval $(call Image/gzip-ext4-padded-squashfs))
@@ -232,6 +224,10 @@ endif
 
 ifeq ($(SUBTARGET),generic)
   include generic.mk
+endif
+
+ifeq ($(SUBTARGET),geode)
+  include geode.mk
 endif
 
 ifeq ($(SUBTARGET),legacy)
