@@ -73,7 +73,7 @@ Finally apply the patch:
 
 # Known Issues
 
-Booting UEFI Image on PVE will be panic because on graphic card driver issue.(Thanks reporter [#2](https://github.com/falafalafala1668/OpenWrt-UEFI-Support/issues/2))
+Booting UEFI Image on PVE will be panic or freeze because on graphic card driver issue.(Thanks reporter [#2](https://github.com/falafalafala1668/OpenWrt-UEFI-Support/issues/2))
 
 ### Solution
 
