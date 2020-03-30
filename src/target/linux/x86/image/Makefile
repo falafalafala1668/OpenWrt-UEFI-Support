@@ -68,7 +68,7 @@ endef
 define Build/combined
 	$(CP) $(KDIR)/$(KERNEL_NAME) $@.boot/boot/vmlinuz
 	-$(CP) $(STAGING_DIR_ROOT)/boot/. $@.boot/boot/
-	PADDING="$(CONFIG_TARGET_IMAGES_PAD)" SIGNATURE="$(IMG_PART_SIGNATURE)" $(SCRIPT_DIR)/gen_image_generic.sh \
+	PADDING="1" SIGNATURE="$(IMG_PART_SIGNATURE)" $(SCRIPT_DIR)/gen_image_generic.sh \
 		$@ \
 		$(CONFIG_TARGET_KERNEL_PARTSIZE) $@.boot \
 		$(CONFIG_TARGET_ROOTFS_PARTSIZE) $(IMAGE_ROOTFS) \
@@ -157,38 +157,40 @@ endef
 DEVICE_VARS += GRUB2_VARIANT
 define Device/Default
   ARTIFACT/image.iso := grub-config iso | iso
-  IMAGE/combined.img := append-rootfs | pad-extra 128k | grub-config pc | combined | grub-install
-  IMAGE/combined.img.gz := append-rootfs | pad-extra 128k | grub-config pc | combined | grub-install | gzip
-  IMAGE/combined.vdi := append-rootfs | pad-extra 128k | grub-config pc | combined | grub-install | qemu-image vdi
-  IMAGE/combined.vmdk := append-rootfs | pad-extra 128k | grub-config pc | combined | grub-install | qemu-image vmdk
-  IMAGE/combined.qcow2 := append-rootfs | pad-extra 128k | grub-config pc | combined | grub-install | qemu-image qcow2
-  IMAGE/uefi-gpt.img := append-rootfs | pad-extra 128k | grub-efi-config pc | efi-partition | efi
-  IMAGE/uefi-gpt.img.gz := append-rootfs | pad-extra 128k | grub-efi-config pc | efi-partition | efi | gzip
-  IMAGE/uefi-gpt.vdi := append-rootfs | pad-extra 128k | grub-efi-config pc | efi-partition | efi | qemu-image vdi
-  IMAGE/uefi-gpt.vmdk := append-rootfs | pad-extra 128k | grub-efi-config pc | efi-partition | efi | qemu-image vmdk
-  IMAGE/uefi-gpt.qcow2 := append-rootfs | pad-extra 128k | grub-efi-config pc | efi-partition | efi | qemu-image qcow2
+  IMAGE/combined.img := grub-config pc | combined | grub-install
+  IMAGE/combined.img.gz := grub-config pc | combined | grub-install | gzip
+  IMAGE/combined.vdi := grub-config pc | combined | grub-install | qemu-image vdi
+  IMAGE/combined.vmdk := grub-config pc | combined | grub-install | qemu-image vmdk
+  IMAGE/combined.qcow2 := grub-config pc | combined | grub-install | qemu-image qcow2
+  IMAGE/rootfs.img := append-rootfs
+  IMAGE/rootfs.img.gz := append-rootfs | gzip
+  IMAGE/uefi-gpt.img := grub-efi-config pc | efi-partition | efi
+  IMAGE/uefi-gpt.img.gz := grub-efi-config pc | efi-partition | efi | gzip
+  IMAGE/uefi-gpt.vdi := grub-efi-config pc | efi-partition | efi | qemu-image vdi
+  IMAGE/uefi-gpt.vmdk := grub-efi-config pc | efi-partition | efi | qemu-image vmdk
+  IMAGE/uefi-gpt.qcow2 := grub-efi-config pc | efi-partition | efi | qemu-image qcow2
   ifeq ($(CONFIG_TARGET_IMAGES_GZIP),y)
     ifeq ($(CONFIG_GRUB_IMAGES)$(CONFIG_EFI_IMAGES),yy)
-        IMAGES := uefi-gpt.img.gz
-        IMAGES += combined.img.gz
+        IMAGES := uefi-gpt.img.gz rootfs.img.gz
+        IMAGES += combined.img.gz rootfs.img.gz
     else
       ifeq ($(CONFIG_GRUB_IMAGES),y)
-        IMAGES := combined.img.gz
+        IMAGES := combined.img.gz rootfs.img.gz
       endif
       ifeq ($(CONFIG_EFI_IMAGES),y)
-        IMAGES := uefi-gpt.img.gz
+        IMAGES := uefi-gpt.img.gz rootfs.img.gz
       endif
     endif
   else
     ifeq ($(CONFIG_GRUB_IMAGES)$(CONFIG_EFI_IMAGES),yy)
-        IMAGES := uefi-gpt.img
-        IMAGES += combined.img
+        IMAGES := uefi-gpt.img rootfs.img
+        IMAGES += combined.img rootfs.img
     else
         ifeq ($(CONFIG_GRUB_IMAGES),y)
-          IMAGES := combined.img
+          IMAGES := combined.img rootfs.img
         endif
         ifeq ($(CONFIG_EFI_IMAGES),y)
-          IMAGES := uefi-gpt.img
+          IMAGES := uefi-gpt.img rootfs.img
         endif
     endif
   endif
