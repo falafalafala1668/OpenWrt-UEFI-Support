@@ -1,7 +1,7 @@
 # OpenWrt UEFI Support (19.07 Branch, Unofficial Support)
 ### IMPORTANT
 
-**Openwrt master branch has offcially supported UEFI, but v19.07 and below not. So v19.07 and below branch will continue to update.** 
+**Openwrt master branch has officially supported UEFI, but v19.07 and below not. So v19.07 and below branch will continue to update.** 
 
 ---
 Since OpenWrt Project has not yet accepted any UEFI-Boot approach, extract based on the original jow.git and modify it to be compatible with the current version.
