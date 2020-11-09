@@ -15,11 +15,6 @@ Tested in Openwrt 18.06 source branches.
 # Usage
 Before clone the patches, please check your OpenWrt source branch:
 
-**Master**
-```
-git clone https://github.com/falafalafala1668/OpenWrt-UEFI-Support.git
-```
-
 **19.07**
 ```
 git clone https://github.com/falafalafala1668/OpenWrt-UEFI-Support.git -b openwrt-19.07
