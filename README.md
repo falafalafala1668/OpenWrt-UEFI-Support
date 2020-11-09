@@ -1,6 +1,6 @@
 # OpenWrt UEFI Support (Unofficial Support)
 
-### IMPORTANT
+### DON'T APPLY THIS PATCH TO MASTER BRANCH
 
 **Openwrt master branch has supported UEFI, but v19.07 and below not. So v19.07 and below branch will continue to update.** 
 
