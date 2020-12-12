@@ -1,11 +1,6 @@
---- tools/Makefile	2020-02-12 22:22:37.265483763 +0800
-+++ OpenWrt-UEFI-Support/src/tools/Makefile	2020-02-12 18:27:33.644791065 +0800
-@@ -25,10 +25,11 @@
- tools-y += m4 libtool autoconf automake flex bison pkg-config mklibs zlib
- tools-y += sstrip make-ext4fs e2fsprogs mtd-utils mkimage
- tools-y += firmware-utils patch-image quilt padjffs2
--tools-y += mm-macros missing-macros cmake scons bc findutils gengetopt patchelf
-+tools-y += mm-macros missing-macros cmake bc findutils gengetopt patchelf
+--- tools/Makefile	2020-12-12 20:43:12.549103921 +0800
++++ OpenWrt-UEFI-Support/src/tools/Makefile	2020-12-12 20:43:12.549168593 +0800
+@@ -29,6 +29,7 @@
  tools-y += mtools dosfstools libressl
  tools-$(CONFIG_TARGET_orion_generic) += wrt350nv2-builder upslug2
  tools-$(CONFIG_TARGET_x86) += qemu
@@ -21,21 +16,3 @@
  
  ifneq ($(HOST_OS),Linux)
    $(curdir)/squashfskit4/compile += $(curdir)/coreutils/compile
-@@ -123,7 +125,7 @@
- 		$(if $(QUIET),,set -x;) \
- 		mkdir -p "$$dir"; \
- 		cd "$$dir"; \
--		mkdir -p bin lib include stamp; \
-+		mkdir -p bin lib stamp; \
- 	); done
- endef
- 
-@@ -152,6 +154,6 @@
- $(curdir)/install: $(curdir)/compile
- 
- tools_enabled = $(foreach tool,$(sort $(tools-y) $(tools-)),$(if $(filter $(tool),$(tools-y)),y,n))
--$(eval $(call stampfile,$(curdir),tools,compile,,_$(subst $(space),,$(tools_enabled))))
--$(eval $(call stampfile,$(curdir),tools,check,$(TMP_DIR)/.build))
-+$(eval $(call stampfile,$(curdir),tools,compile,,_$(subst $(space),,$(tools_enabled)),$(STAGING_DIR_HOST)))
-+$(eval $(call stampfile,$(curdir),tools,check,$(TMP_DIR)/.build,,$(STAGING_DIR_HOST)))
- $(eval $(call subdir,$(curdir)))
