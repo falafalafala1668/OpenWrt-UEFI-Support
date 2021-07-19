@@ -1,0 +1,16 @@
+--- target/linux/x86/base-files/lib/upgrade/platform.sh	2021-07-19 13:53:00.384594776 +0800
++++ OpenWrt-UEFI-Support/src/target/linux/x86/base-files/lib/upgrade/platform.sh	2021-07-14 23:33:16.064276218 +0800
+@@ -35,10 +35,11 @@
+ }
+ 
+ platform_copy_config() {
+-	local partdev
++	local partdev parttype=ext4
+ 
+ 	if export_partdevice partdev 1; then
+-		mount -t ext4 -o rw,noatime "/dev/$partdev" /mnt
++		part_magic_fat "/dev/$partdev" && parttype=vfat
++		mount -t $parttype -o rw,noatime "/dev/$partdev" /mnt
+ 		cp -af "$UPGRADE_BACKUP" "/mnt/$BACKUP_FILE"
+ 		umount /mnt
+ 	fi

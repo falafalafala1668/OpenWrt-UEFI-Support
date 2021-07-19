@@ -1,5 +1,5 @@
---- target/linux/x86/image/Makefile	2020-02-12 22:22:37.000000000 +0800
-+++ OpenWrt-UEFI-Support/src/target/linux/x86/image/Makefile	2020-02-27 16:54:07.814458998 +0800
+--- target/linux/x86/image/Makefile	2021-07-19 13:53:00.374464836 +0800
++++ OpenWrt-UEFI-Support/src/target/linux/x86/image/Makefile	2020-07-11 14:42:53.276571000 +0800
 @@ -1,4 +1,4 @@
 -# 
 +#

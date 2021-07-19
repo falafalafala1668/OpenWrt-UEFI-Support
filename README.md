@@ -39,11 +39,11 @@ Go to **Target Images** and make sure that **Build EFI grub images** option is c
 
 ## Update
 
-Before update, Please ensure that the following files have not been modified.
+Before update, Please ensure that the following folder or files have not been modified.
 ```
 config/Config-images.in
 package/base-files/files/lib/upgrade/common.sh
-package/boot/grub2/Makefile
+package/boot/grub2
 tools/Makefile
 target/linux/x86/base-files/lib/upgrade/platform.sh
 target/linux/x86/image/Makefile
@@ -80,12 +80,12 @@ Booting UEFI Image on PVE will be panic or freeze because on graphic card driver
 Add ``nomodeset`` to stop using the graphic card driver (``Target Images -> Extra kernel boot options``).
 
 # Advanced Settings
-If you OpenWrt isn't official sources, or you have been modified these files.You can generate patches by yourself.
+If you OpenWrt isn't official sources, or you have been modified these folder or files. You can generate patches by yourself.
 
 ```
 config/Config-images.in
 package/base-files/files/lib/upgrade/common.sh
-package/boot/grub2/Makefile
+package/boot/grub2
 tools/Makefile
 target/linux/x86/base-files/lib/upgrade/platform.sh
 target/linux/x86/image/Makefile

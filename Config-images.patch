@@ -1,6 +1,6 @@
---- config/Config-images.in	2020-02-12 22:22:37.215089581 +0800
-+++ OpenWrt-UEFI-Support/src/config/Config-images.in	2020-02-27 16:41:33.143354423 +0800
-@@ -193,21 +193,28 @@
+--- config/Config-images.in	2021-07-19 13:53:17.172776454 +0800
++++ OpenWrt-UEFI-Support/src/config/Config-images.in	2021-07-18 23:40:59.420839832 +0800
+@@ -193,21 +193,29 @@
  		depends on TARGET_x86
  		depends on TARGET_ROOTFS_EXT4FS || TARGET_ROOTFS_ISO || TARGET_ROOTFS_JFFS2 || TARGET_ROOTFS_SQUASHFS
  		select PACKAGE_grub2
@@ -11,6 +11,7 @@
 +		depends on TARGET_x86
 +		depends on TARGET_ROOTFS_EXT4FS || TARGET_ROOTFS_ISO || TARGET_ROOTFS_JFFS2 || TARGET_ROOTFS_SQUASHFS
 +		select PACKAGE_grub2-efi
++		select PACKAGE_kmod-fs-vfat
  		default y
  
  	config GRUB_CONSOLE
@@ -32,7 +33,7 @@
  		default 38400 if TARGET_x86_generic
  		default 115200
  
-@@ -218,20 +225,20 @@
+@@ -218,20 +226,20 @@
  
  	config GRUB_BOOTOPTS
  		string "Extra kernel boot options"
@@ -56,7 +57,7 @@
  		default "OpenWrt"
  		help
  		  This is the title of the GRUB menu entry.
-@@ -240,14 +247,14 @@
+@@ -240,14 +248,14 @@
  	config VDI_IMAGES
  		bool "Build VirtualBox image files (VDI)"
  		depends on TARGET_x86
@@ -73,7 +74,7 @@
  		select TARGET_IMAGES_PAD
  		select PACKAGE_kmod-e1000
  
-@@ -266,21 +273,21 @@
+@@ -266,21 +274,21 @@
  
  	config TARGET_KERNEL_PARTSIZE
  		int "Kernel partition size (in MB)"
