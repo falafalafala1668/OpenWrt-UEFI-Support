@@ -98,45 +98,10 @@ define Package/grub2/install
 	$(CP) $(PKG_BUILD_DIR)/grub-core/boot.img $(STAGING_DIR_IMAGE)/grub2/
 	$(CP) $(PKG_BUILD_DIR)/grub-core/cdboot.img $(STAGING_DIR_IMAGE)/grub2/
 	sed 's#msdos1#gpt1#g' ./files/grub-early.cfg >$(PKG_BUILD_DIR)/grub-early.cfg
-	$(STAGING_DIR_HOST)/bin/grub-mkimage \
-		-d $(PKG_BUILD_DIR)/grub-core \
-		-p /boot/grub \
-		-O i386-pc \
-		-c $(PKG_BUILD_DIR)/grub-early.cfg \
-		-o $(STAGING_DIR_IMAGE)/grub2/gpt-core.img \
-		at_keyboard biosdisk boot chain configfile fat linux ls part_gpt reboot serial vga
-	$(STAGING_DIR_HOST)/bin/grub-mkimage \
-		-d $(PKG_BUILD_DIR)/grub-core \
-		-p /boot/grub \
-		-O i386-pc \
-		-c ./files/grub-early.cfg \
-		-o $(STAGING_DIR_IMAGE)/grub2/generic-core.img \
-		at_keyboard biosdisk boot chain configfile ext2 linux ls part_msdos reboot serial vga
-	$(STAGING_DIR_HOST)/bin/grub-mkimage \
-		-d $(PKG_BUILD_DIR)/grub-core \
-		-p /boot/grub \
-		-O i386-pc \
-		-c ./files/grub-early.cfg \
-		-o $(STAGING_DIR_IMAGE)/grub2/eltorito.img \
-		at_keyboard biosdisk boot chain configfile iso9660 linux ls part_msdos reboot serial test vga
-	$(STAGING_DIR_HOST)/bin/grub-mkimage \
-		-d $(PKG_BUILD_DIR)/grub-core \
-		-p /boot/grub \
-		-O i386-pc \
-		-c ./files/grub-early.cfg \
-		-o $(STAGING_DIR_IMAGE)/grub2/legacy-core.img \
-		biosdisk boot chain configfile ext2 linux ls part_msdos reboot serial vga
 endef
 
 define Package/grub2-efi/install
 	sed 's#msdos1#gpt1#g' ./files/grub-early.cfg >$(PKG_BUILD_DIR)/grub-early.cfg
-	$(STAGING_DIR_HOST)/bin/grub-mkimage \
-		-d $(PKG_BUILD_DIR)/grub-core \
-		-p /boot/grub \
-		-O $(CONFIG_ARCH)-efi \
-		-c $(PKG_BUILD_DIR)/grub-early.cfg \
-		-o $(STAGING_DIR_IMAGE)/grub2/boot$(if $(CONFIG_x86_64),x64,ia32).efi \
-		at_keyboard boot chain configfile fat linux ls part_gpt reboot serial efi_gop efi_uga
 	$(STAGING_DIR_HOST)/bin/grub-mkimage \
 		-d $(PKG_BUILD_DIR)/grub-core \
 		-p /boot/grub \

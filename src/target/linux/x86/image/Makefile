@@ -97,13 +97,13 @@ ifneq ($(CONFIG_GRUB_IMAGES)$(CONFIG_EFI_IMAGES),)
 	echo "configfile /boot/grub/grub.cfg" >> $(KDIR)/grub2.efi/efi/boot/grub.cfg
 
 	# Create the EFI grub binary
-	grub-mkimage-efi \
-		-d $(STAGING_DIR_HOST)/lib/grub/x86_64-efi \
-		-o $(KDIR)/grub2.efi/efi/boot/bootx64.efi \
-		-O x86_64-efi \
-		-p /efi/boot \
-		-c $(KDIR)/grub2.efi/efi/boot/grub.cfg \
-		$(GRUB2_MODULES_EFI)
+	$(STAGING_DIR_HOST)/bin/grub-mkimage \
+			-d $(PKG_BUILD_DIR)/grub-efi/grub-2.04/grub-core \
+			-p /efi/boot \
+			-O $(CONFIG_ARCH)-efi \
+			-c $(KDIR)/grub2.efi/efi/boot/grub.cfg \
+			-o $(KDIR)/grub2.efi/efi/boot/boot$(if $(CONFIG_x86_64),x64,ia32).efi \
+			$(GRUB2_MODULES_EFI)
 
 	# Generate the EFI VFAT bootfs
 	rm $(KDIR)/kernel.efi || true
@@ -135,12 +135,12 @@ ifneq ($(CONFIG_GRUB_IMAGES)$(CONFIG_EFI_IMAGES),)
 	$(CP) $(KDIR)/bzImage $(KDIR)/root.grub/boot/vmlinuz
 	grub-mkimage \
 		-p /boot/grub \
-		-d $(STAGING_DIR_HOST)/lib/grub/i386-pc \
+		-d $(PKG_BUILD_DIR)/grub-pc/grub-2.04/grub-core \
 		-o $(KDIR)/grub2/core.img \
 		-O i386-pc \
 		-c ./grub-early.cfg \
 		$(GRUB2_MODULES)
-	$(CP) $(STAGING_DIR_HOST)/lib/grub/i386-pc/*.img $(KDIR)/grub2/
+	$(CP) $(PKG_BUILD_DIR)/grub-pc/grub-2.04/grub-core/*.img $(KDIR)/grub2/
 	echo '(hd0) $(BIN_DIR)/$(IMG_PREFIX)-combined-$(1).img' > $(KDIR)/grub2/device.map
 	sed \
 		-e 's#@SERIAL_CONFIG@#$(strip $(GRUB_SERIAL_CONFIG))#g' \
@@ -174,13 +174,13 @@ define Image/Build/iso
 	$(CP) $(KDIR)/bzImage $(KDIR)/root.grub/boot/vmlinuz
 	grub-mkimage \
 		-p /boot/grub \
-		-d $(STAGING_DIR_HOST)/lib/grub/i386-pc \
+		-d $(PKG_BUILD_DIR)/grub-pc/grub-2.04/grub-core \
 		-o $(KDIR)/grub2/eltorito.img \
 		-O i386-pc \
 		-c ./grub-early.cfg \
 		$(GRUB2_MODULES_ISO)
 	cat \
-		$(STAGING_DIR_HOST)/lib/grub/i386-pc/cdboot.img \
+		$(PKG_BUILD_DIR)/grub-pc/grub-2.04/grub-core/cdboot.img \
 		$(KDIR)/grub2/eltorito.img \
 		> $(KDIR)/root.grub/boot/grub/eltorito.img
 	sed \
