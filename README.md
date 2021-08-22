@@ -8,7 +8,7 @@ Since OpenWrt Project has not yet accepted any UEFI-Boot approach, extract based
 
 These patches are for the convenience of quickly adding UEFI startup support and these are **temporary solutions**.
 
-Tested in Openwrt 19.07.7
+Tested in Openwrt 19.07.8
 
 ![](https://github.com/falafalafala1668/OpenWrt-UEFI-Support/blob/master/src/Screenshots/2.png)
 
