@@ -12,11 +12,11 @@ restore_patch() {
       done
 
       rm -rf "package/boot/grub2"
-      git checkout "package/boot/grub2"
+      git checkout "package/boot/grub2" "target/linux/x86/base-files/lib/preinit/79_move_config"
     #  rm -rf package/libs/gnuefi package/utils/efi* package/utils/sbsigntool
       rm -rf "tools/gptfdisk" "tools/popt"
-      rm -rf "target/linux/x86/image/gen_image_efi.sh"
-      rm -rf ".UEFIDone"
+      rm -f "target/linux/x86/image/gen_image_efi.sh" "target/linux/x86/image/grub-efi.cfg"
+      rm -f ".UEFIDone"
     else
         echo "Already Restored."
     fi
@@ -36,9 +36,10 @@ apply_patch() {
     #  cp -r $(currentdir)/src/package/utils/efi* package/utils/
       rm -rf "package/boot/grub2"
       cp -r "$(currentdir)/src/package/boot/grub2" "package/boot/"
-      cp -r "$(currentdir)/src/target/linux/x86/image/gen_image_efi.sh" "target/linux/x86/image/"
-     cp -r "$(currentdir)/src/tools/gptfdisk" "tools/"
-     cp -r "$(currentdir)/src/tools/popt" "tools"
+      cp -f "$(currentdir)/src/target/linux/x86/image/gen_image_efi.sh" "$(currentdir)/src/target/linux/x86/image/grub-efi.cfg" "target/linux/x86/image/"
+      cp -f "$(currentdir)/src/target/linux/x86/base-files/lib/preinit/79_move_config" "target/linux/x86/base-files/lib/preinit/79_move_config"
+      cp -r "$(currentdir)/src/tools/gptfdisk" "tools/"
+      cp -r "$(currentdir)/src/tools/popt" "tools"
       echo "pre-21.02.0" > ".UEFIDone"
       echo "Done."
   else
@@ -56,8 +57,6 @@ update() {
 
 generate_patch() {
   echo "###### Generating Patches ######"
-  echo "Updating Openwrt source..."
-  git pull
   diff -Naur config/Config-images.in $(currentdir)/src/config/Config-images.in > $(currentdir)/Config-images.patch
   diff -Naur package/base-files/files/lib/upgrade/common.sh $(currentdir)/src/package/base-files/files/lib/upgrade/common.sh > $(currentdir)/common.patch
   diff -Naur target/linux/x86/base-files/lib/upgrade/platform.sh $(currentdir)/src/target/linux/x86/base-files/lib/upgrade/platform.sh > $(currentdir)/platform.patch

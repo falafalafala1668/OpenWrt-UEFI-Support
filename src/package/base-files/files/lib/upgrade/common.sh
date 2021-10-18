@@ -148,7 +148,7 @@ export_bootdevice() {
 		esac
 
 		case "$rootpart" in
-			PARTUUID=[A-F0-9][A-F0-9][A-F0-9][A-F0-9][A-F0-9][A-F0-9][A-F0-9][A-F0-9]-[A-F0-9][A-F0-9][A-F0-9][A-F0-9]-[A-F0-9][A-F0-9][A-F0-9][A-F0-9]-[A-F0-9][A-F0-9][A-F0-9][A-F0-9]-[A-F0-9][A-F0-9][A-F0-9][A-F0-9][A-F0-9][A-F0-9][A-F0-9][A-F0-9][A-F0-9][A-F0-9][A-F0-9][A-F0-9])
+			PARTUUID=????????-????-????-????-????????0002)
 				uuid="${rootpart#PARTUUID=}"
 				for blockdev in $(find /dev -type b); do
 					set -- $(dd if=$blockdev bs=1 skip=1168 count=16 2>/dev/null | hexdump -v -e '8/1 "%02X "" "2/1 "%02X""-"6/1 "%02X"')
@@ -159,6 +159,7 @@ export_bootdevice() {
 						break
 					fi
 				done
+
 			;;
 			PARTUUID=[a-f0-9][a-f0-9][a-f0-9][a-f0-9][a-f0-9][a-f0-9][a-f0-9][a-f0-9]-[a-f0-9][a-f0-9])
 				uuid="${rootpart#PARTUUID=}"

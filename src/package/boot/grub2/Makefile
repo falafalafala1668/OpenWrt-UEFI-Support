@@ -97,18 +97,18 @@ define Package/grub2/install
 	$(INSTALL_DIR) $(STAGING_DIR_IMAGE)/grub2
 	$(CP) $(PKG_BUILD_DIR)/grub-core/boot.img $(STAGING_DIR_IMAGE)/grub2/
 	$(CP) $(PKG_BUILD_DIR)/grub-core/cdboot.img $(STAGING_DIR_IMAGE)/grub2/
-	sed 's#msdos1#gpt1#g' ./files/grub-early.cfg >$(PKG_BUILD_DIR)/grub-early.cfg
 endef
 
 define Package/grub2-efi/install
-	sed 's#msdos1#gpt1#g' ./files/grub-early.cfg >$(PKG_BUILD_DIR)/grub-early.cfg
+	sed 's#msdos1#gpt1#g' ./files/grub-early.cfg > $(PKG_BUILD_DIR)/grub-early.cfg
+	test -d "$(STAGING_DIR_IMAGE)" || mkdir "$(STAGING_DIR_IMAGE)/grub2"
 	$(STAGING_DIR_HOST)/bin/grub-mkimage \
 		-d $(PKG_BUILD_DIR)/grub-core \
 		-p /boot/grub \
 		-O $(CONFIG_ARCH)-efi \
-		-c ./files/grub-early.cfg \
-		-o $(STAGING_DIR_IMAGE)/grub2/iso-boot$(if $(CONFIG_x86_64),x64,ia32).efi \
-		at_keyboard boot chain configfile fat iso9660 linux ls part_msdos part_gpt reboot serial test efi_gop efi_uga
+		-c $(PKG_BUILD_DIR)/grub-early.cfg \
+		-o $(STAGING_DIR_IMAGE)/grub2/boot$(if $(CONFIG_x86_64),x64,ia32).efi \
+		at_keyboard boot chain configfile fat linux ls part_gpt reboot serial efi_gop efi_uga
 endef
 
 define Package/grub2-editenv/install
