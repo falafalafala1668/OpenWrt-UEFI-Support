@@ -1,5 +1,5 @@
---- target/linux/x86/image/Makefile	2021-10-19 01:16:08.610141522 +0800
-+++ OpenWrt-UEFI-Support/src/target/linux/x86/image/Makefile	2021-10-19 01:15:19.000000000 +0800
+--- target/linux/x86/image/Makefile	2021-10-19 21:25:59.853341069 +0800
++++ OpenWrt-UEFI-Support/src/target/linux/x86/image/Makefile	2021-10-19 21:18:41.000000000 +0800
 @@ -1,4 +1,4 @@
 -# 
 +#
@@ -68,14 +68,14 @@
 +		$(CONFIG_TARGET_KERNEL_PARTSIZE) $(KDIR)/grub2.efi \
 +		$(CONFIG_TARGET_ROOTFS_PARTSIZE) $(KDIR)/root.$(1) \
 +		256
-+
+ 
+-  define Image/Build/grub2
 +	# Convert the MBR partition to GPT and set EFI ROOTFS signature
 +	dd if=/dev/zero of="$(BIN_DIR)/$(IMG_PREFIX)-$(1)-combined-efi.img" bs=512 count=34 conv=notrunc oflag=append
 +	sgdisk -g "$(BIN_DIR)/$(IMG_PREFIX)-$(1)-combined-efi.img"
 +	sgdisk -t 1:EF00 "$(BIN_DIR)/$(IMG_PREFIX)-$(1)-combined-efi.img"
 +	sgdisk -u 2:$(EFI_SIGNATURE) "$(BIN_DIR)/$(IMG_PREFIX)-$(1)-combined-efi.img"
- 
--  define Image/Build/grub2
++
 +	echo -e -n "\xeb\x63\x99" | dd of="$(BIN_DIR)/$(IMG_PREFIX)-$(1)-combined-efi.img"  bs=4 conv=notrunc
 +
 +endef
@@ -161,19 +161,20 @@
  endef
  
  ifneq ($(CONFIG_TARGET_IMAGES_GZIP),)
-@@ -171,8 +233,15 @@
+@@ -170,9 +232,16 @@
+ define Image/Build
  	$(call Image/Build/$(1))
    ifneq ($(1),iso)
++    ifneq ($(CONFIG_GRUB_IMAGES),)
  	$(call Image/Build/grub2,$(1))
-+	$(call Image/Build/efi,$(1))
-+ifneq ($(CONFIG_GRUB_IMAGES),)
  	$(call Image/Build/vdi,$(1))
  	$(call Image/Build/vmdk,$(1))
-+endif
-+ifneq ($(CONFIG_EFI_IMAGES),)
++    endif
++    ifneq ($(CONFIG_EFI_IMAGES),)
++	$(call Image/Build/efi,$(1))
 +	$(call Image/Build/vdi_efi,$(1))
 +	$(call Image/Build/vmdk_efi,$(1))
-+endif
++    endif
  	$(CP) $(KDIR)/root.$(1) $(BIN_DIR)/$(IMG_PREFIX)-rootfs-$(1).img
    else
  	$(CP) $(KDIR)/root.iso $(BIN_DIR)/$(IMG_PREFIX).iso

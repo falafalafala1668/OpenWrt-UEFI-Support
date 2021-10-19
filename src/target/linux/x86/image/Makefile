@@ -232,16 +232,16 @@ endef
 define Image/Build
 	$(call Image/Build/$(1))
   ifneq ($(1),iso)
+    ifneq ($(CONFIG_GRUB_IMAGES),)
 	$(call Image/Build/grub2,$(1))
-	$(call Image/Build/efi,$(1))
-ifneq ($(CONFIG_GRUB_IMAGES),)
 	$(call Image/Build/vdi,$(1))
 	$(call Image/Build/vmdk,$(1))
-endif
-ifneq ($(CONFIG_EFI_IMAGES),)
+    endif
+    ifneq ($(CONFIG_EFI_IMAGES),)
+	$(call Image/Build/efi,$(1))
 	$(call Image/Build/vdi_efi,$(1))
 	$(call Image/Build/vmdk_efi,$(1))
-endif
+    endif
 	$(CP) $(KDIR)/root.$(1) $(BIN_DIR)/$(IMG_PREFIX)-rootfs-$(1).img
   else
 	$(CP) $(KDIR)/root.iso $(BIN_DIR)/$(IMG_PREFIX).iso
