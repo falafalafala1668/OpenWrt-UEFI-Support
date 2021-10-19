@@ -3,17 +3,17 @@ platform_check_image() {
 	[ "$#" -gt 1 ] && return 1
 
 	case "$(get_magic_word "$1")" in
-		eb48|eb63|16fa) ;;
+		eb48|eb63) ;;
 		*)
 			echo "Invalid image type"
 			return 1
 		;;
 	esac
 
-	# export_bootdevice && export_partdevice diskdev 0 || {
-	# 	echo "Unable to determine upgrade device"
-	# 	return 1
-	# }
+	export_bootdevice && export_partdevice diskdev 0 || {
+		echo "Unable to determine upgrade device"
+		return 1
+	}
 
 	get_partitions "/dev/$diskdev" bootdisk
 
@@ -35,10 +35,11 @@ platform_check_image() {
 }
 
 platform_copy_config() {
-	local partdev
+	local partdev parttype=ext4
 
 	if export_partdevice partdev 1; then
-		mount -t ext4 -o rw,noatime "/dev/$partdev" /mnt
+		part_magic_fat "/dev/$partdev" && parttype=vfat
+		mount -t $parttype -o rw,noatime "/dev/$partdev" /mnt
 		cp -af "$CONF_TAR" /mnt/
 		umount /mnt
 	fi

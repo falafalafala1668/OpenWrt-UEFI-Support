@@ -10,8 +10,6 @@ include $(INCLUDE_DIR)/image.mk
 export PATH=$(TARGET_PATH):/sbin
 
 GRUB2_MODULES = biosdisk boot chain configfile ext2 linux ls part_msdos reboot serial vga
-
-GRUB2_MODULES_EFI = boot chain configfile ext2 linux ls part_msdos reboot serial part_gpt part_msdos search fat exfat ext2 efi_gop efi_uga gfxterm
 GRUB2_MODULES_ISO = biosdisk boot chain configfile iso9660 linux ls part_msdos reboot serial vga
 GRUB_TERMINALS =
 GRUB_SERIAL_CONFIG =
@@ -47,93 +45,68 @@ SIGNATURE:=$(shell perl -e 'printf("%08x", rand(0xFFFFFFFF))')
 EFI_SIGNATURE:=$(strip $(shell uuidgen | sed "s/[a-zA-Z0-9][a-zA-Z0-9][a-zA-Z0-9][a-zA-Z0-9]$$/0002/" | tr '[a-z]' '[A-Z]'))
 ROOTPART:=$(call qstrip,$(CONFIG_TARGET_ROOTFS_PARTNAME))
 ROOTPART:=$(if $(ROOTPART),$(ROOTPART),PARTUUID=$(SIGNATURE)-02)
-
+EFI_ROOTPART:=$(call qstrip,$(CONFIG_TARGET_ROOTFS_PARTNAME))
+EFI_ROOTPART:=$(if $(EFI_ROOTPART),$(EFI_ROOTPART),PARTUUID=$(EFI_SIGNATURE))
 GRUB_TIMEOUT:=$(call qstrip,$(CONFIG_GRUB_TIMEOUT))
 
 ifneq ($(CONFIG_TARGET_x86_xen_domu),)
   GRUB_ROOT = xen/xvda,msdos1
 endif
+BOOTOPTS:=$(call qstrip,$(CONFIG_GRUB_BOOTOPTS))
 
-ifneq ($(CONFIG_GRUB_IMAGES)$(CONFIG_EFI_IMAGES),)
+define Image/cmdline/ext4
+  root=$(ROOTPART) rootfstype=ext4 rootwait
+endef
 
-  BOOTOPTS:=$(call qstrip,$(CONFIG_GRUB_BOOTOPTS))
+define Image/cmdline/squashfs
+  root=$(ROOTPART) rootfstype=squashfs rootwait
+endef
 
-  define Image/cmdline/ext4
-    root=$(ROOTPART) rootfstype=ext4 rootwait
-  endef
+# UEFI Start
+ifneq ($(CONFIG_EFI_IMAGES),)
 
-  define Image/cmdline/squashfs
-    root=$(ROOTPART) rootfstype=squashfs rootwait
-  endef
+define Image/cmdline/efi
+$(subst $(SIGNATURE)-02,$2,$(call Image/cmdline/$(1)))
+endef
 
-  # UEFI Start
-  ifneq ($(CONFIG_EFI_IMAGES),)
-
-  define Image/cmdline/efi
-    $(subst $(SIGNATURE)-02,$2,$(call Image/cmdline/$(1)))
-  endef
-
-  define Image/Build/efi
-	# left here because the image builder doesnt need these
-	rm -rf $(KDIR)/root.grub/ || true
-	$(INSTALL_DIR) $(KDIR)/root.grub/boot/grub $(KDIR)/grub2
-	$(CP) $(KDIR)/bzImage $(KDIR)/root.grub/boot/vmlinuz
-	echo '(hd0) $(BIN_DIR)/$(IMG_PREFIX)-uefi-gpt-$(1).img' > $(KDIR)/grub2/device.map
-	sed \
-		-e 's#@SERIAL_CONFIG@#$(strip $(GRUB_SERIAL_CONFIG))#g' \
-		-e 's#@TERMINAL_CONFIG@#$(strip $(GRUB_TERMINAL_CONFIG))#g' \
-		-e 's#@CMDLINE@#$(strip $(call Image/cmdline/efi,$(1),$(EFI_SIGNATURE)) $(BOOTOPTS) $(GRUB_CONSOLE_CMDLINE))#g' \
-		-e 's#@TIMEOUT@#$(GRUB_TIMEOUT)#g' \
-		-e 's#@ROOT@#$(GRUB_ROOT)#g' \
-		-e 's#set root.*#search --file /boot/grub/$(SIGNATURE).cfg --set=root#g' \
-		./grub.cfg > $(KDIR)/root.grub/boot/grub/grub.cfg
-	sed \
-		-e 's/(hd0,msdos1)/(hd0,gpt1)/' ./grub-early.cfg > \
-			$(KDIR)/root.grub/boot/grub/grub-early.cfg
-
-	$(CP) $(KDIR)/root.grub/boot/grub/grub.cfg $(KDIR)/root.grub/boot/grub/$(EFI_SIGNATURE).cfg
+define Image/Build/efi
 
 	# Build the efi grub version
 	rm -rf $(KDIR)/grub2.efi/ || true
 	$(INSTALL_DIR) $(KDIR)/grub2.efi/efi/boot/
 
-	# Generate the grub search root config (grub will search for the $(EFI_SIGNATURE).cfg file placed on the boot partition as grub does not support search of GPT UUID yet)
-	echo "search --file /boot/grub/$(EFI_SIGNATURE).cfg --set=root" > $(KDIR)/grub2.efi/efi/boot/grub.cfg
-	echo "configfile /boot/grub/grub.cfg" >> $(KDIR)/grub2.efi/efi/boot/grub.cfg
+	# Copy the EFI grub binary
+	$(CP) $(PKG_BUILD_DIR)grub-efi-2.02/boot$(if $(CONFIG_x86_64),x64,ia32).efi $(KDIR)/grub2.efi/efi/boot/
 
-	# Create the EFI grub binary
-	grub-mkimage-efi \
-		-d $(STAGING_DIR_HOST)/lib/grub/x86_64-efi \
-		-o $(KDIR)/grub2.efi/efi/boot/bootx64.efi \
-		-O x86_64-efi \
-		-p /efi/boot \
-		-c $(KDIR)/grub2.efi/efi/boot/grub.cfg \
-		$(GRUB2_MODULES_EFI)
-
-	# Generate the EFI VFAT bootfs
-	rm $(KDIR)/kernel.efi || true
-	mkfs.fat -C $(KDIR)/kernel.efi -S 512 1024
-	mcopy -s -i "$(KDIR)/kernel.efi" $(KDIR)/grub2.efi/* ::/
+	$(INSTALL_DIR) $(KDIR)/grub2.efi/boot/grub $(KDIR)/grub2
+	$(CP) $(KDIR)/bzImage $(KDIR)/grub2.efi/boot/vmlinuz
+	echo '(hd0) $(BIN_DIR)/$(IMG_PREFIX)-$(1)-combined-efi.img' > $(KDIR)/grub2/device.map
+	sed \
+		-e 's#@SERIAL_CONFIG@#$(strip $(GRUB_SERIAL_CONFIG))#g' \
+		-e 's#@TERMINAL_CONFIG@#$(strip $(GRUB_TERMINAL_CONFIG))#g' \
+		-e 's#@GPT_ROOTPART@#$(call Image/cmdline/efi,$(1),$(EFI_SIGNATURE))#g' \
+		-e 's#@CMDLINE@#$(BOOTOPTS) $(GRUB_CONSOLE_CMDLINE)#g' \
+		-e 's#@TIMEOUT@#$(GRUB_TIMEOUT)#g' \
+		./grub-efi.cfg > $(KDIR)/grub2.efi/boot/grub/grub.cfg
 
 	SIGNATURE="$(EFI_SIGNATURE)" PATH="$(TARGET_PATH)" ./gen_image_efi.sh \
-		$(BIN_DIR)/$(IMG_PREFIX)-uefi-gpt-$(1).img \
-		$(CONFIG_TARGET_KERNEL_PARTSIZE) $(KDIR)/root.grub \
+		$(BIN_DIR)/$(IMG_PREFIX)-$(1)-combined-efi.img \
+		$(CONFIG_TARGET_KERNEL_PARTSIZE) $(KDIR)/grub2.efi \
 		$(CONFIG_TARGET_ROOTFS_PARTSIZE) $(KDIR)/root.$(1) \
-		1 $(KDIR)/kernel.efi \
 		256
 
 	# Convert the MBR partition to GPT and set EFI ROOTFS signature
-	dd if=/dev/zero of="$(BIN_DIR)/$(IMG_PREFIX)-uefi-gpt-$(1).img" bs=512 count=34 conv=notrunc oflag=append
-	sgdisk -g "$(BIN_DIR)/$(IMG_PREFIX)-uefi-gpt-$(1).img"
-	sgdisk -t 3:EF00 "$(BIN_DIR)/$(IMG_PREFIX)-uefi-gpt-$(1).img"
-	sgdisk -u 2:$(EFI_SIGNATURE) "$(BIN_DIR)/$(IMG_PREFIX)-uefi-gpt-$(1).img"
+	dd if=/dev/zero of="$(BIN_DIR)/$(IMG_PREFIX)-$(1)-combined-efi.img" bs=512 count=34 conv=notrunc oflag=append
+	sgdisk -g "$(BIN_DIR)/$(IMG_PREFIX)-$(1)-combined-efi.img"
+	sgdisk -t 1:EF00 "$(BIN_DIR)/$(IMG_PREFIX)-$(1)-combined-efi.img"
+	sgdisk -u 2:$(EFI_SIGNATURE) "$(BIN_DIR)/$(IMG_PREFIX)-$(1)-combined-efi.img"
 
-	echo -e -n "\xeb\x63\x99" | dd of="$(BIN_DIR)/$(IMG_PREFIX)-uefi-gpt-$(1).img"  bs=4 conv=notrunc
+	echo -e -n "\xeb\x63\x99" | dd of="$(BIN_DIR)/$(IMG_PREFIX)-$(1)-combined-efi.img" bs=4 conv=notrunc
 
-  endef
-  endif
+endef
+endif
 
-  ifneq ($(CONFIG_GRUB_IMAGES),)
+ifneq ($(CONFIG_GRUB_IMAGES),)
   define Image/Build/grub2
 	# left here because the image builder doesnt need these
 	$(INSTALL_DIR) $(KDIR)/root.grub/boot/grub $(KDIR)/grub2
@@ -145,7 +118,7 @@ ifneq ($(CONFIG_GRUB_IMAGES)$(CONFIG_EFI_IMAGES),)
 		-O i386-pc \
 		-c ./grub-early.cfg \
 		$(GRUB2_MODULES)
-	$(CP) $(STAGING_DIR_HOST)/lib/grub/i386-pc/*.img $(KDIR)/grub2/
+		$(CP) $(STAGING_DIR_HOST)/lib/grub/i386-pc/*.img $(KDIR)/grub2/
 	echo '(hd0) $(BIN_DIR)/$(IMG_PREFIX)-combined-$(1).img' > $(KDIR)/grub2/device.map
 	sed \
 		-e 's#@SERIAL_CONFIG@#$(strip $(GRUB_SERIAL_CONFIG))#g' \
@@ -166,8 +139,6 @@ ifneq ($(CONFIG_GRUB_IMAGES)$(CONFIG_EFI_IMAGES),)
 		-r "hd0,msdos1" \
 		"$(BIN_DIR)/$(IMG_PREFIX)-combined-$(1).img"
   endef
-  endif
-
 endif
 
 define Image/Build/squashfs
@@ -209,12 +180,12 @@ ifneq ($(CONFIG_VDI_IMAGES),)
 	chmod 0644 $(BIN_DIR)/$(IMG_PREFIX)-combined-$(1).vdi
   endef
   define Image/Build/vdi_efi
-	rm $(BIN_DIR)/$(IMG_PREFIX)-uefi-gpt-$(1).vdi || true
+	rm $(BIN_DIR)/$(IMG_PREFIX)-$(1)-combined-efi.vdi || true
 	qemu-img convert -f raw -O vdi \
-		$(BIN_DIR)/$(IMG_PREFIX)-uefi-gpt-$(1).img \
-		$(BIN_DIR)/$(IMG_PREFIX)-uefi-gpt-$(1).vdi
+		$(BIN_DIR)/$(IMG_PREFIX)-$(1)-combined-efi.img \
+		$(BIN_DIR)/$(IMG_PREFIX)-$(1)-combined-efi.vdi
 	# XXX: VBoxManage insists on setting perms to 0600
-	chmod 0644 $(BIN_DIR)/$(IMG_PREFIX)-uefi-gpt-$(1).vdi
+	chmod 0644 $(BIN_DIR)/$(IMG_PREFIX)-$(1)-combined-efi.vdi
   endef
 endif
 
@@ -226,10 +197,10 @@ ifneq ($(CONFIG_VMDK_IMAGES),)
 		$(BIN_DIR)/$(IMG_PREFIX)-combined-$(1).vmdk
   endef
   define Image/Build/vmdk_efi
-	rm $(BIN_DIR)/$(IMG_PREFIX)-uefi-gpt-$(1).vmdk || true
+	rm $(BIN_DIR)/$(IMG_PREFIX)-$(1)-combined-efi.vmdk || true
 	qemu-img convert -f raw -O vmdk \
-		$(BIN_DIR)/$(IMG_PREFIX)-uefi-gpt-$(1).img \
-		$(BIN_DIR)/$(IMG_PREFIX)-uefi-gpt-$(1).vmdk
+		$(BIN_DIR)/$(IMG_PREFIX)-$(1)-combined-efi.img \
+		$(BIN_DIR)/$(IMG_PREFIX)-$(1)-combined-efi.vmdk
   endef
 endif
 
@@ -239,7 +210,7 @@ ifneq ($(CONFIG_GRUB_IMAGES),)
 	gzip -f9n $(BIN_DIR)/$(IMG_PREFIX)-combined-$(1).img
 endif
 ifneq ($(CONFIG_EFI_IMAGES),)
-	gzip -f9n $(BIN_DIR)/$(IMG_PREFIX)-uefi-gpt-$(1).img
+	gzip -f9n $(BIN_DIR)/$(IMG_PREFIX)-$(1)-combined-efi.img
 endif
 endef
 
@@ -267,16 +238,16 @@ endef
 define Image/Build
 	$(call Image/Build/$(1))
   ifneq ($(1),iso)
+    ifneq ($(CONFIG_GRUB_IMAGES),)
 	$(call Image/Build/grub2,$(1))
-	$(call Image/Build/efi,$(1))
-ifneq ($(CONFIG_GRUB_IMAGES),)
 	$(call Image/Build/vdi,$(1))
 	$(call Image/Build/vmdk,$(1))
-endif
-ifneq ($(CONFIG_EFI_IMAGES),)
+    endif
+    ifneq ($(CONFIG_EFI_IMAGES),)
+	$(call Image/Build/efi,$(1))
 	$(call Image/Build/vdi_efi,$(1))
 	$(call Image/Build/vmdk_efi,$(1))
-endif
+    endif
 	$(CP) $(KDIR)/root.$(1) $(BIN_DIR)/$(IMG_PREFIX)-rootfs-$(1).img
   else
 	$(CP) $(KDIR)/root.iso $(BIN_DIR)/$(IMG_PREFIX).iso

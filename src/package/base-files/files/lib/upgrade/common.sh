@@ -92,6 +92,29 @@ get_image() { # <source> [ <command> ]
 	cat "$from" 2>/dev/null | $cmd
 }
 
+get_magic_gpt() {
+	(get_image "$@" | dd bs=8 count=1 skip=64) 2>/dev/null
+}
+
+part_magic_efi() {
+	local magic=$(get_magic_gpt "$@")
+	[ "$magic" = "EFI PART" ]
+}
+
+get_magic_vfat() {
+	(get_image "$@" | dd bs=3 count=1 skip=18) 2>/dev/null
+}
+
+get_magic_fat32() {
+	(get_image "$@" | dd bs=1 count=5 skip=82) 2>/dev/null
+}
+
+part_magic_fat() {
+	local magic=$(get_magic_vfat "$@")
+	local magic_fat32=$(get_magic_fat32 "$@")
+	[ "$magic" = "FAT" ] || [ "$magic_fat32" = "FAT32" ]
+}
+
 get_magic_word() {
 	(get_image "$@" | dd bs=2 count=1 | hexdump -v -n 2 -e '1/1 "%02x"') 2>/dev/null
 }
@@ -117,7 +140,7 @@ export_bootdevice() {
 		esac
 
 		case "$disk" in
-			PARTUUID=[A-F0-9][A-F0-9][A-F0-9][A-F0-9][A-F0-9][A-F0-9][A-F0-9][A-F0-9]-[A-F0-9][A-F0-9][A-F0-9][A-F0-9]-[A-F0-9][A-F0-9][A-F0-9][A-F0-9]-[A-F0-9][A-F0-9][A-F0-9][A-F0-9]-[A-F0-9][A-F0-9][A-F0-9][A-F0-9][A-F0-9][A-F0-9][A-F0-9][A-F0-9][A-F0-9][A-F0-9][A-F0-9][A-F0-9])
+			PARTUUID=????????-????-????-????-????????0002)
 				uuid="${disk#PARTUUID=}"
 				for disk in $(find /dev -type b); do
 					set -- $(dd if=$disk bs=1 skip=1168 count=16 2>/dev/null | hexdump -v -e '8/1 "%02X "" "2/1 "%02X""-"6/1 "%02X"')
@@ -200,7 +223,7 @@ get_partitions() { # <device> <filename>
 
 		local part
 		for part in 1 2 3 4; do
-			if [ "$(dd if="$disk" bs=1 skip=512 count=8 2>/dev/null)" = "EFI PART" ]; then
+			part_magic_efi "$disk" && {
 				case $(hexdump -v -n 16 -s "$(( 0x380 + $part * 128 ))" -e '4/4 "%08X"' "$disk") in
 					"0FC63DAF47728483693D798EE47D47D8")
 						gptTypeID="0x00000083"
@@ -216,9 +239,9 @@ get_partitions() { # <device> <filename>
 				gptLBA=$(hexdump -v -n 4 -s $(( 0x3A0 + $part * 128 )) -e '1/4 "0x%08X"' "$disk")
 				gptNUM=$(hexdump -v -n 4 -s $(( 0x3A8 + $part * 128 )) -e '1/4 "0x%08X"' "$disk")
 				set -- $gptTypeID $gptLBA $gptNUM
-			else
+			} || {
 				set -- $(hexdump -v -n 12 -s "$((0x1B2 + $part * 16))" -e '3/4 "0x%08X "' "$disk")
-			fi
+			}
 
 			local type="$(( $(hex_le32_to_cpu $1) % 256))"
 			local lba="$(( $(hex_le32_to_cpu $2) ))"
