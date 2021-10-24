@@ -21,8 +21,8 @@ endef
 
 define Package/grub2-efi/install
 	sed 's#msdos1#gpt1#g' ../files/grub-early.cfg > $(PKG_BUILD_DIR)/grub-early.cfg
-	test -d "$(PKG_BUILD_DIR)" || mkdir "$(PKG_BUILD_DIR)"
-	$(STAGING_DIR_HOST)/bin/grub-mkimage \
+	test -d "$(PKG_BUILD_DIR)" || mkdir -p "$(PKG_BUILD_DIR)"
+	$(STAGING_DIR_HOST)/bin/grub-mkimage-efi \
 		-d $(PKG_BUILD_DIR)/grub-core \
 		-p /boot/grub \
 		-O $(CONFIG_ARCH)-efi \
