@@ -101,7 +101,7 @@ endef
 
 define Package/grub2-efi/install
 	sed 's#msdos1#gpt1#g' ./files/grub-early.cfg > $(PKG_BUILD_DIR)/grub-early.cfg
-	test -d "$(STAGING_DIR_IMAGE)" || mkdir "$(STAGING_DIR_IMAGE)/grub2"
+	test -d "$(STAGING_DIR_IMAGE)" || mkdir -p "$(STAGING_DIR_IMAGE)/grub2"
 	$(STAGING_DIR_HOST)/bin/grub-mkimage \
 		-d $(PKG_BUILD_DIR)/grub-core \
 		-p /boot/grub \
